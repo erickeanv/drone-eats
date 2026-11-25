@@ -1,0 +1,5487 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Drone Eats</title>
+
+  <!-- Google Fonts: Oswald, Rubik y JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Oswald:wght@500;600;700&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ==========================================================================
+       1. VARIABLES DE DISEÑO (MODO OSCURO CÓMODO + TICKET + CONSOLA NEO-RETRO)
+       ========================================================================== */
+    :root {
+      --bg-app: #0b1120;
+      --bg-panel: #0f172a;
+      --bg-elevated: #1e293b;
+      --border: #334155;
+      --border-light: #475569;
+
+      --orange: #f97316;
+      --orange-dark: #ea580c;
+      --orange-glow: rgba(249, 115, 22, 0.35);
+
+      /* Ticket de papel "Ruta del día" (se conserva intacto) */
+      --paper-bg: #FBF7EE;
+      --paper-ink: #1E2430;
+      --paper-muted: #646D7E;
+      --paper-line: #E5DCC9;
+
+      /* Consola Neo-Retro con verde cómodo (sin aqua fosforescente) */
+      --console-bg: #0b1322;
+      --console-card: #131f33;
+      --console-border: #253650;
+      --green: #2bb53b;
+      --green-soft: #38C749;
+      --green-dim: rgba(34, 197, 34, 0.15);
+      --cyan: #38bdf8;
+      --cyan-dim: rgba(56, 189, 248, 0.15);
+      --amber: #f59e0b;
+      --amber-dim: rgba(245, 158, 11, 0.16);
+      --coral: #ef4444;
+      --coral-dim: rgba(239, 68, 68, 0.18);
+      --gold: #facc15;
+      --metal-bg: #1e293b;
+      --metal-border: #475569;
+
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+      --text-muted: #64748b;
+
+      --font-display: 'Oswald', system-ui, -apple-system, sans-serif;
+      --font-body: 'Rubik', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      background-color: var(--bg-app);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      line-height: 1.38;
+      overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-image:
+        radial-gradient(circle at 12% 0%, rgba(249, 116, 22, 0.307) 0%, transparent 42%),
+        radial-gradient(circle at 92% 100%, rgba(0, 179, 255, 0.141) 0%, transparent 35%);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    button {
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    /* ==========================================================================
+       2. PANTALLA DE INICIO (OSCURA, ELEGANTE Y MINIMALISTA)
+       ========================================================================== */
+    .title-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 16px;
+    }
+
+    .title-card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--bg-panel);
+      border: 1.5px solid var(--border);
+      border-radius: 24px;
+      padding: 32px 26px 26px;
+      text-align: center;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .hero-drone-box {
+      width: 170px;
+      height: 102px;
+      display: grid;
+      place-items: center;
+    }
+
+    .hero-drone-svg {
+      animation: droneHover 2.5s ease-in-out infinite;
+      filter: drop-shadow(0 12px 18px rgba(34, 211, 238, 0.2));
+    }
+
+    @keyframes droneHover {
+      0%, 100% { transform: translateY(0px) rotate(-1.5deg); }
+      50% { transform: translateY(-9px) rotate(1.5deg); }
+    }
+
+    .led-blink {
+      animation: ledPulse 1.1s ease-in-out infinite alternate;
+    }
+
+    .led-blink-delay {
+      animation: ledPulse 1.1s ease-in-out 0.55s infinite alternate;
+    }
+
+    @keyframes ledPulse {
+      from { opacity: 0.3; }
+      to { opacity: 1; }
+    }
+
+    .logo-title {
+      font-family: var(--font-display);
+      font-size: 3.1rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      line-height: 1;
+      color: var(--text-main);
+    }
+
+    .logo-title span {
+      color: var(--orange);
+    }
+
+    .logo-tag {
+      display: inline-block;
+      margin-bottom: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--cyan);
+      background: var(--cyan-dim);
+      border: 1px solid rgba(34, 211, 238, 0.28);
+      padding: 4px 12px;
+      border-radius: 999px;
+    }
+
+    .title-actions {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, var(--orange-dark) 0%, #f916f1 100%);
+      color: #08121B;
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 14px 20px;
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      box-shadow: 0 6px 20px rgba(208, 52, 211, 0.28);
+      transition: transform 0.14s ease, box-shadow 0.14s ease;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 26px rgba(249, 22, 222, 0.42)
+      ;
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background: var(--bg-elevated);
+      color: var(--text-main);
+      border: 1.5px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 12.5px 16px;
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      position: relative;
+      transition: all 0.15s ease;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    .btn-locked {
+      background: rgba(13, 20, 32, 0.7);
+      color: var(--text-muted);
+      border: 1.5px dashed var(--border);
+      border-radius: var(--radius-md);
+      padding: 12.5px 16px;
+      font-size: 0.86rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: not-allowed;
+    }
+
+    .btn-link-muted {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      margin-top: 2px;
+      padding: 4px 8px;
+    }
+
+    .btn-link-muted:hover {
+      color: var(--coral);
+    }
+
+    .coin-chip {
+      background: rgba(250, 204, 21, 0.14);
+      border: 1px solid rgba(250, 204, 21, 0.4);
+      color: var(--gold);
+      border-radius: 999px;
+      padding: 2px 10px;
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    /* Punto rojo pulsante del Taller */
+    .shop-dot {
+      width: 12.5px;
+      height: 12.5px;
+      border-radius: 50%;
+      background: #EF4444;
+      border: 2px solid var(--bg-panel);
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      animation: pulseRed 1.4s infinite;
+    }
+
+    @keyframes pulseRed {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.75); }
+      70% { box-shadow: 0 0 0 9px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+    /* ==========================================================================
+       3. INTRO CÓMIC (3 VIÑETAS ESTILO PAPA'S PIZZERIA)
+       ========================================================================== */
+    .comic-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 14px;
+    }
+
+    .comic-card {
+      width: 100%;
+      max-width: 560px;
+      background: var(--bg-panel);
+      border: 2px solid var(--border-light);
+      border-radius: 22px;
+      padding: 20px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .comic-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .comic-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .comic-dot {
+      width: 30px;
+      height: 6px;
+      border-radius: 99px;
+      background: var(--border);
+      transition: background 0.2s ease;
+    }
+
+    .comic-dot.active {
+      background: var(--green);
+    }
+
+    .btn-skip {
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 4px 8px;
+    }
+
+    .btn-skip:hover {
+      color: var(--text-main);
+    }
+
+    .comic-art {
+      width: 100%;
+      height: 235px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 2px solid var(--border-light);
+      background: #BAE6FD;
+    }
+
+    .comic-caption {
+      font-size: 1.08rem;
+      font-weight: 500;
+      text-align: center;
+      color: var(--text-main);
+      min-height: 48px;
+      display: grid;
+      place-items: center;
+      padding: 0 6px;
+    }
+
+    /* ==========================================================================
+       4. PANTALLA PRINCIPAL DE JUEGO
+       ========================================================================== */
+    .game-screen {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 8px 12px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* Barra superior delgada oscura */
+    .topbar {
+      min-height: 48px;
+      background: var(--bg-panel);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+    }
+
+    .tb-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-right: 4px;
+    }
+    .tb-brand-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #f916f1, #ea580c);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 3px 10px var(--orange-glow);
+    }
+    .tb-brand-name {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #ffffff;
+    }
+    .tb-brand-name span {
+      color: var(--orange);
+    }
+
+    .tb-group {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .tb-btn {
+      height: 34px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-light);
+      color: var(--text-main);
+      border-radius: var(--radius-sm);
+      padding: 0 12.5px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+      transition: all 0.15s ease;
+    }
+
+    .tb-btn:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    .tb-day {
+      font-family: var(--font-display);
+      font-size: 0.98rem;
+      letter-spacing: 0.05em;
+      background: var(--green-dim);
+      border-color: rgba(52, 211, 78, 0.38);
+      color: var(--green);
+    }
+
+    .tb-day:hover {
+      background: rgba(52, 211, 153, 0.22);
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    .tb-wallet {
+      height: 34px;
+      background: rgba(250, 204, 21, 0.12);
+      border: 1px solid rgba(250, 204, 21, 0.35);
+      color: var(--gold);
+      border-radius: var(--radius-sm);
+      padding: 0 12.5px;
+      font-family: var(--font-display);
+      font-size: 1.02rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .tb-btn.muted {
+      color: var(--text-muted);
+    }
+
+    /* ==========================================================================
+       5. ESCENARIO SUPERIOR (CANVAS 2D DE LA CALLE)
+       ========================================================================== */
+    .stage-panel {
+      position: relative;
+      z-index: 66;
+      background: var(--bg-panel);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 8px;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+    }
+
+    .stage-canvas-wrap {
+      width: 100%;
+      height: clamp(210px, 34vh, 275px);
+      border-radius: 12.5px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid var(--border-light);
+      background: #7DD3FC;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Selector de velocidad 1x / 1.5x / 2x (superior izquierda del canvas) */
+    .speed-control {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      display: inline-flex;
+      background: rgba(13, 20, 32, 0.78);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      border-radius: 9px;
+      padding: 2px;
+      gap: 2px;
+      z-index: 5;
+    }
+
+    .spd-btn {
+      background: transparent;
+      border: none;
+      color: #CBD5E1;
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 7px;
+      transition: all 0.14s ease;
+    }
+
+    .spd-btn.active {
+      background: var(--cyan);
+      color: #08121B;
+    }
+
+    /* Cronómetro estilo cámara REC (superior derecha del canvas) */
+    .rec-timer {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(11, 17, 29, 0.84);
+      backdrop-filter: blur(6px);
+      border: 1.5px solid rgba(239, 68, 68, 0.35);
+      border-radius: 10px;
+      padding: 5px 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 5;
+      pointer-events: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .rec-timer.recording {
+      border-color: rgba(239, 68, 68, 0.88);
+      animation: recBorderPulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes recBorderPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.38), inset 0 0 8px rgba(239, 68, 68, 0.12); }
+      50% { box-shadow: 0 0 14px 2px rgba(239, 68, 68, 0.45), inset 0 0 12px rgba(239, 68, 68, 0.22); }
+    }
+
+    .rec-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #EF4444;
+      opacity: 0.45;
+    }
+
+    .rec-timer.recording .rec-dot {
+      opacity: 1;
+      box-shadow: 0 0 8px #EF4444;
+      animation: recBlink 0.9s steps(2, start) infinite;
+    }
+
+    @keyframes recBlink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.18; }
+    }
+
+    .rec-label {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #FCA5A5;
+    }
+
+    .rec-value {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: #FFFFFF;
+      font-variant-numeric: tabular-nums;
+      min-width: 58px;
+      text-align: right;
+    }
+
+    /* ==========================================================================
+       6. ZONA INFERIOR EQUILIBRADA (44% RUTA DEL DÍA / 56% CONSOLA)
+       ========================================================================== */
+    .lower-grid {
+      display: grid;
+      grid-template-columns: 44% 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    /* --- PANEL IZQUIERDO: RUTA DEL DÍA (HOJA DE PAPEL / TICKET CREMA) --- */
+    .ticket-shell {
+      position: relative;
+      padding-top: 8px;
+    }
+
+    .ticket-perf-top {
+      height: 10px;
+      width: 100%;
+      background:
+        radial-gradient(circle at 8px 0, var(--bg-app) 5px, var(--paper-bg) 5.5px) 0 0 / 16px 10px repeat-x;
+    }
+
+    .ticket-paper {
+      background: var(--paper-bg);
+      color: var(--paper-ink);
+      padding: 14px 16px 16px;
+      border-radius: 0 0 14px 14px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.38);
+      border-left: 1px solid #EAE1CF;
+      border-right: 1px solid #EAE1CF;
+      border-bottom: 3px solid #DFD5C0;
+    }
+
+    .ticket-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px dashed var(--paper-line);
+      padding-bottom: 9px;
+      margin-bottom: 12.5px;
+    }
+
+    .ticket-title {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--paper-ink);
+    }
+
+    .ticket-day-pill {
+      font-family: var(--font-display);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      background: var(--paper-ink);
+      color: var(--paper-bg);
+      padding: 2px 10px;
+      border-radius: 6px;
+    }
+
+    .route-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .route-card {
+      background: #FFFFFF;
+      border: 1.5px solid #EAE2D0;
+      border-left: 5px solid #F43F5E;
+      border-radius: 10px;
+      padding: 9px 12.5px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: pointer;
+      transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
+    }
+
+    .route-card:hover {
+      transform: translateX(3px);
+      box-shadow: 0 4px 12px rgba(30, 36, 48, 0.1);
+    }
+
+    .route-card.delivered {
+      background: #ECFDF5;
+      border-color: #A7F3D0;
+    }
+
+    .route-left {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .order-badge {
+      font-family: var(--font-display);
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      padding: 2px 8px;
+      border-radius: 6px;
+      min-width: 32px;
+      text-align: center;
+    }
+
+    .route-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .route-pos {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--paper-ink);
+    }
+
+    .route-sub {
+      font-size: 0.74rem;
+      color: var(--paper-muted);
+      font-weight: 500;
+    }
+
+    .route-time {
+      font-family: var(--font-mono);
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--paper-ink);
+      background: #F4EFE4;
+      border: 1px solid #E5DCC9;
+      padding: 4px 9px;
+      border-radius: 7px;
+      white-space: nowrap;
+    }
+
+    .route-card.delivered .route-time {
+      background: #D1FAE5;
+      border-color: #6EE7B7;
+      color: #047857;
+    }
+
+    .route-alerts {
+      margin-top: 12.5px;
+      padding-top: 10px;
+      border-top: 2px dashed var(--paper-line);
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .route-alert-card {
+      background: #FEF2F2;
+      border: 2px dashed #EF4444;
+      color: #B91C1C;
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-family: var(--font-display);
+      font-size: 0.94rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      /* text-transform: uppercase; */
+      animation: stampIn 0.24s cubic-bezier(0.2, 0.9, 0.3, 1.25);
+    }
+
+    @keyframes stampIn {
+      0% { transform: scale(1.12) rotate(-2deg); opacity: 0; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    /* --- EXCEPCIÓN DÍA 9: MONITOR GPS CON VIDRIO ROTO --- */
+    .broken-gps-panel {
+      background: #0B121E;
+      border: 2px solid #EF4444;
+      border-radius: var(--radius-lg);
+      padding: 12px;
+      box-shadow: 0 10px 28px rgba(239, 68, 68, 0.2);
+    }
+
+    .broken-gps-head {
+      background: rgba(239, 68, 68, 0.16);
+      border: 1px solid rgba(239, 68, 68, 0.45);
+      color: #FCA5A5;
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-align: center;
+      padding: 6px 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .broken-gps-screen {
+      width: 100%;
+      height: 295px;
+      border-radius: 10px;
+      background: #070C15;
+      border: 1px solid #24354E;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cracks-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    /* --- PANEL DERECHO: CONSOLA NEO-RETRO TÁCTICA --- */
+    .console-shell {
+      background-color: var(--console-bg);
+      background-image:
+        linear-gradient(rgba(34, 211, 238, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34, 211, 238, 0.04) 1px, transparent 1px);
+      background-size: 22px 22px;
+      border: 1.5px solid var(--console-border);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(52, 211, 153, 0.14);
+      display: flex;
+      flex-direction: column;
+      gap: 12.5px;
+      position: relative;
+    }
+
+    .console-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid var(--console-border);
+      padding-bottom: 9px;
+    }
+
+    .console-title {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--green);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .console-led {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 10px var(--green);
+    }
+
+    .console-head-tools {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .mode-switch {
+      display: inline-flex;
+      background: #080E18;
+      border: 1px solid var(--console-border);
+      border-radius: 8px;
+      padding: 2px;
+      gap: 2px;
+    }
+
+    .mode-pill {
+      height: 28px;
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      font-family: var(--font-display);
+      font-size: 0.84rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 0 12.5px;
+      border-radius: 6px;
+      transition: all 0.14s ease;
+    }
+
+    .mode-pill.active {
+      background: var(--cyan);
+      color: #08121B;
+    }
+
+    .tool-chip {
+      height: 32px;
+      background: var(--console-card);
+      border: 1px solid var(--console-border);
+      color: var(--cyan);
+      border-radius: 8px;
+      padding: 0 10px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.14s ease;
+    }
+
+    .tool-chip:hover, .tool-chip.active {
+      border-color: var(--cyan);
+      background: var(--cyan-dim);
+    }
+
+    /* Botones de acción sin signo "+" */
+    .console-add-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .add-btn-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-add-move {
+      background: var(--green-dim);
+      border: 1.5px solid rgba(52, 211, 52, 0.55);
+      color: var(--green);
+      border-radius: 9px;
+      padding: 8px 14px;
+      font-family: var(--font-display);
+      font-size: 0.96rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      transition: all 0.14s ease;
+    }
+
+    .btn-add-move:hover:not(:disabled) {
+      background: rgba(52, 211, 153, 0.24);
+      transform: translateY(-1px);
+    }
+
+    .btn-add-wait {
+      background: var(--amber-dim);
+      border: 1.5px solid rgba(245, 158, 11, 0.55);
+      color: var(--amber);
+      border-radius: 9px;
+      padding: 8px 14px;
+      font-family: var(--font-display);
+      font-size: 0.96rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.14s ease;
+    }
+
+    .btn-add-wait:hover:not(:disabled) {
+      background: rgba(245, 158, 11, 0.26);
+      transform: translateY(-1px);
+    }
+
+    .btn-clear-soft {
+      background: transparent;
+      border: 1px solid var(--console-border);
+      color: var(--text-sub);
+      border-radius: 8px;
+      padding: 7px 12.5px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .btn-clear-soft:hover:not(:disabled) {
+      border-color: var(--coral);
+      color: var(--coral);
+    }
+
+    .btn-clear-soft:disabled, .btn-add-move:disabled, .btn-add-wait:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Lista de bloques constructivos */
+    .blocks-zone {
+      min-height: 175px;
+      background: rgba(7, 12, 21, 0.65);
+      border: 1.5px dashed var(--console-border);
+      border-radius: 12.5px;
+      padding: 9px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .blocks-empty {
+      margin: auto;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.86rem;
+      padding: 18px 10px;
+    }
+
+    .cmd-block {
+      background: var(--console-card);
+      border: 1.5px solid var(--console-border);
+      border-left: 4px solid var(--green);
+      border-radius: 10px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      transition: all 0.15s ease;
+    }
+
+    .cmd-block.is-wait {
+      border-left-color: var(--amber);
+      background: linear-gradient(90deg, rgba(245, 158, 11, 0.08) 0%, var(--console-card) 45%);
+    }
+
+    .cmd-block.is-locked {
+      background: var(--metal-bg);
+      border-color: var(--metal-border);
+      border-left: 4px solid #94A3B8;
+      opacity: 0.86;
+    }
+
+    .cmd-block.is-error {
+      border-color: var(--coral);
+      box-shadow: 0 0 0 2px rgba(251, 113, 133, 0.22);
+    }
+
+    .cmd-block.is-running {
+      border-color: var(--cyan);
+      box-shadow: 0 0 14px rgba(34, 211, 238, 0.25);
+    }
+
+    .cmd-block.dragging {
+      opacity: 0.42;
+    }
+
+    .step-handle {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: #0A101B;
+      border: 1px solid var(--console-border);
+      color: var(--cyan);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      display: grid;
+      place-items: center;
+      cursor: grab;
+      flex-shrink: 0;
+    }
+
+    .cmd-block.is-locked .step-handle {
+      cursor: default;
+      color: #94A3B8;
+    }
+
+    .neo-input-wrap {
+      display: inline-flex;
+      align-items: center;
+      background: #080E18;
+      border: 1.5px solid var(--console-border);
+      border-radius: 7px;
+      padding: 0 8px;
+      height: 34px;
+      transition: border-color 0.14s ease;
+    }
+
+    .neo-input-wrap:focus-within {
+      border-color: var(--cyan);
+    }
+
+    .cmd-block.is-locked .neo-input-wrap {
+      background: #141C2B;
+      border-color: #334155;
+    }
+
+    .neo-input-wrap input {
+      width: 56px;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 0.96rem;
+      font-weight: 600;
+      text-align: right;
+    }
+
+    .neo-input-wrap input:disabled {
+      color: #94A3B8;
+    }
+
+    .neo-input-wrap span {
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      color: var(--text-sub);
+      margin-left: 5px;
+      user-select: none;
+    }
+
+    .wait-static-tag {
+      height: 34px;
+      background: var(--amber-dim);
+      border: 1px solid rgba(245, 158, 11, 0.42);
+      color: var(--amber);
+      border-radius: 7px;
+      padding: 0 12.5px;
+      font-family: var(--font-mono);
+      font-size: 0.84rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* Flechas de sentido ← / → sincronizadas con el signo */
+    .dir-group {
+      display: inline-flex;
+      background: #080E18;
+      border: 1px solid var(--console-border);
+      border-radius: 7px;
+      padding: 2px;
+      gap: 2px;
+    }
+
+    .dir-btn {
+      width: 32px;
+      height: 28px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      font-weight: 700;
+      border-radius: 5px;
+      display: grid;
+      place-items: center;
+      transition: all 0.12s ease;
+    }
+
+    .dir-btn:hover:not(:disabled) {
+      color: var(--text-main);
+    }
+
+    .dir-btn.active-right {
+      background: var(--green);
+      color: #08121B;
+    }
+
+    .dir-btn.active-left {
+      background: var(--coral);
+      color: #08121B;
+    }
+
+    .dir-btn:disabled {
+      opacity: 0.25;
+      cursor: not-allowed;
+    }
+
+    .block-tools {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .blk-icon-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: 1px solid var(--console-border);
+      background: #0A101B;
+      color: var(--text-sub);
+      font-size: 0.82rem;
+      display: grid;
+      place-items: center;
+      transition: all 0.13s ease;
+    }
+
+    .blk-icon-btn:hover:not(:disabled) {
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    .blk-icon-btn.locked-on {
+      background: rgba(148, 163, 184, 0.2);
+      border-color: #94A3B8;
+      color: #E2E8F0;
+    }
+
+    .blk-icon-btn.del:hover:not(:disabled) {
+      border-color: var(--coral);
+      color: var(--coral);
+      background: var(--coral-dim);
+    }
+
+    .blk-icon-btn:disabled {
+      opacity: 0.28;
+      cursor: not-allowed;
+    }
+
+    /* --- MODO GRÁFICA x(t) EN CONSOLA --- */
+    .graph-canvas-box {
+      width: 100%;
+      height: 268px;
+      background: #070D17;
+      border: 1.5px solid var(--console-border);
+      border-radius: 10px;
+      position: relative;
+      overflow: hidden;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    .graph-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .graph-hint {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      color: var(--text-sub);
+    }
+
+    /* Botón grande Despegar / Detener */
+    .launch-bar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .launch-bar .btn-primary {
+      flex: 1;
+      padding: 12px 18px;
+      font-size: 1.18rem;
+    }
+
+    .btn-stop {
+      flex: 1;
+      background: linear-gradient(135deg, #FB7185 0%, #EF4444 100%);
+      color: #FFFFFF;
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 12px 18px;
+      font-family: var(--font-display);
+      font-size: 1.18rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      box-shadow: 0 6px 18px rgba(239, 68, 68, 0.3);
+    }
+
+    /* ==========================================================================
+       7. CALCULADORA FLOTANTE NEO-RETRO
+       ========================================================================== */
+    .calc-float {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      width: 244px;
+      background: #0C1422;
+      border: 1.5px solid var(--cyan);
+      border-radius: 16px;
+      padding: 12px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
+      z-index: 160;
+      animation: popUp 0.16s ease;
+    }
+
+    @keyframes popUp {
+      from { opacity: 0; transform: translateY(10px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .calc-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      cursor: move;
+      user-select: none;
+    }
+
+    .calc-title {
+      font-family: var(--font-display);
+      font-size: 0.88rem;
+      letter-spacing: 0.08em;
+      color: var(--cyan);
+    }
+
+    .calc-close {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      border: 1px solid var(--border-light);
+      background: var(--bg-elevated);
+      color: var(--text-sub);
+      font-size: 0.8rem;
+    }
+
+    .calc-display {
+      background: #060B14;
+      border: 1px solid var(--console-border);
+      border-radius: 9px;
+      padding: 8px 10px;
+      text-align: right;
+      margin-bottom: 8px;
+      min-height: 52px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .calc-expr {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      min-height: 15px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .calc-val {
+      font-family: var(--font-mono);
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--green);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .calc-keys {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .ckey {
+      height: 38px;
+      background: var(--console-card);
+      border: 1px solid var(--console-border);
+      color: var(--text-main);
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.98rem;
+      font-weight: 700;
+      transition: all 0.1s ease;
+    }
+
+    .ckey:hover {
+      border-color: var(--cyan);
+    }
+
+    .ckey:active {
+      transform: scale(0.94);
+    }
+
+    .ckey.op {
+      background: var(--cyan-dim);
+      color: var(--cyan);
+      border-color: rgba(34, 211, 238, 0.3);
+    }
+
+    .ckey.eq {
+      background: var(--green);
+      color: #08121B;
+      border-color: var(--green);
+    }
+
+    .ckey.clr {
+      background: var(--coral-dim);
+      color: var(--coral);
+      border-color: rgba(251, 113, 133, 0.35);
+    }
+
+    /* ==========================================================================
+       8. BARRITA GUÍA DE 1 LÍNEA, TOASTS Y OVERLAY DEL TALLER (JETPACK JOYRIDE)
+       ========================================================================== */
+    .guide-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(6, 10, 18, 0.68);
+      backdrop-filter: blur(3px);
+      z-index: 65;
+      animation: fadeIn 0.18s ease;
+    }
+    
+    .guide-highlight {
+      position: relative;
+      z-index: 70 !important;
+      box-shadow: 0 0 0 3px var(--orange), 0 0 0 9px rgba(238, 143, 34, 0.22) !important;
+      border-radius: var(--radius-md);
+    }
+
+    .guide-bar {
+      position: fixed;
+      z-index: 140;
+      background: #2b200f;
+      border: 1.5px solid var(--orange);
+      color: #FFFFFF;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      max-width: min(92vw, 520px);
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55);
+      animation: popUp 0.18s ease;
+    }
+
+    .guide-ok {
+      background: var(--orange);
+      color: #ffffff;
+      border: none;
+      border-radius: 7px;
+      padding: 5px 12.5px;
+      font-family: var(--font-display);
+      font-size: 0.86rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    /* Overlay pantalla completa para el primer aviso del Taller */
+    .shop-coach-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(7, 11, 19, 0.82);
+      backdrop-filter: blur(3px);
+      z-index: 180;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .shop-coach-spotlight {
+      position: relative;
+      z-index: 195 !important;
+      box-shadow: 0 0 0 3px var(--gold), 0 0 24px rgba(250, 204, 21, 0.7) !important;
+      background: #232F46 !important;
+      color: var(--gold) !important;
+    }
+
+    .shop-coach-card {
+      position: fixed;
+      z-index: 196;
+      width: min(90vw, 350px);
+      background: var(--bg-panel);
+      border: 2px solid var(--gold);
+      border-radius: 18px;
+      padding: 18px 20px;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
+    }
+
+    .shop-coach-arrow {
+      position: fixed;
+      z-index: 196;
+      font-size: 2.2rem;
+      color: var(--gold);
+      pointer-events: none;
+      animation: arrowBounce 0.85s ease-in-out infinite alternate;
+      filter: drop-shadow(0 0 10px rgba(250, 204, 21, 0.6));
+    }
+
+    @keyframes arrowBounce {
+      from { transform: translateY(4px); }
+      to { transform: translateY(-7px); }
+    }
+
+    /* Toasts */
+    .toast-host {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      width: min(92vw, 430px);
+      pointer-events: none;
+    }
+
+    .toast {
+      background: #1A2438;
+      border: 1.5px solid var(--coral);
+      border-left: 5px solid var(--coral);
+      color: #FFFFFF;
+      border-radius: 12.5px;
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      text-align: center;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
+      animation: popUp 0.18s ease;
+    }
+
+    /* ==========================================================================
+       9. MODALES (RESULTADO BRILLANTE, DÍAS, TALLER, AVISOS DE DESBLOQUEO)
+       ========================================================================== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(6, 10, 18, 0.78);
+      backdrop-filter: blur(5px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 220;
+      animation: fadeIn 0.18s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-box {
+      width: 100%;
+      max-width: 470px;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: var(--bg-panel);
+      border: 1.5px solid var(--border-light);
+      border-top: 4px solid var(--green);
+      border-radius: 20px;
+      padding: 22px;
+      box-shadow: 0 26px 65px rgba(0, 0, 0, 0.65);
+      position: relative;
+    }
+
+    .modal-box.is-fail {
+      border-top-color: var(--coral);
+    }
+
+    .modal-box.is-cyan {
+      border-top-color: var(--cyan);
+    }
+
+    .modal-box.is-gold {
+      border-top-color: var(--gold);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--border-light);
+      background: var(--bg-elevated);
+      color: var(--text-sub);
+      font-weight: 700;
+      display: grid;
+      place-items: center;
+    }
+
+    .modal-close:hover {
+      color: #FFFFFF;
+      border-color: #FFFFFF;
+    }
+
+    .res-kicker {
+      font-family: var(--font-display);
+      font-size: 0.8rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      text-align: center;
+      color: var(--green);
+    }
+
+    .modal-box.is-fail .res-kicker {
+      color: var(--coral);
+    }
+
+    .res-title {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 700;
+      text-align: center;
+      color: #FFFFFF;
+      margin: 2px 0 4px;
+    }
+
+    .res-stars {
+      font-size: 2.25rem;
+      letter-spacing: 6px;
+      text-align: center;
+      color: var(--gold);
+      text-shadow: 0 0 18px rgba(250, 204, 21, 0.65);
+      margin-bottom: 10px;
+    }
+
+    .res-stars .off {
+      color: #2B3952;
+      text-shadow: none;
+    }
+
+    .res-stars.pop {
+      animation: starsPop 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.3);
+    }
+
+    @keyframes starsPop {
+      0% { transform: scale(0.6); opacity: 0.2; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .res-review {
+      background: #101726;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 0.95rem;
+      font-style: italic;
+      color: #E2E8F0;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .res-diag {
+      background: var(--coral-dim);
+      border: 1px solid rgba(251, 113, 133, 0.42);
+      color: #FECDD3;
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-size: 0.86rem;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    .res-coins {
+      background: rgba(250, 204, 21, 0.12);
+      border: 1px solid rgba(250, 204, 21, 0.35);
+      color: var(--gold);
+      border-radius: 10px;
+      padding: 9px 14px;
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .modal-actions > * {
+      flex: 1;
+      min-width: 140px;
+    }
+
+    /* Mapa de los 9 Días */
+    .days-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 9px;
+      margin-top: 14px;
+    }
+
+    .day-card {
+      background: #121A2B;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      transition: all 0.14s ease;
+    }
+
+    .day-card:hover {
+      border-color: var(--cyan);
+      transform: translateY(-1px);
+    }
+
+    .day-card.current {
+      border-color: var(--green);
+      background: var(--green-dim);
+    }
+
+    .day-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .day-card-num {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+
+    .day-card-stars {
+      font-size: 0.78rem;
+      color: var(--gold);
+    }
+
+    .day-card-name {
+      font-size: 0.78rem;
+      color: var(--text-sub);
+    }
+
+    /* Taller de Skins */
+    .shop-list {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      margin-top: 14px;
+    }
+
+    .skin-row {
+      background: #121A2B;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .skin-row.equipped {
+      border-color: var(--green);
+      background: var(--green-dim);
+    }
+
+    .skin-left {
+      display: flex;
+      align-items: center;
+      gap: 12.5px;
+    }
+
+    .skin-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: #0B111E;
+      border: 1px solid var(--border-light);
+      display: grid;
+      place-items: center;
+      font-size: 1.45rem;
+      flex-shrink: 0;
+    }
+
+    .skin-name {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #FFFFFF;
+    }
+
+    .skin-desc {
+      font-size: 0.75rem;
+      color: var(--text-sub);
+    }
+
+    .skin-btn {
+      border: none;
+      border-radius: 8px;
+      padding: 8px 13px;
+      font-family: var(--font-display);
+      font-size: 0.92rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .skin-btn.buy {
+      background: var(--gold);
+      color: #0B111E;
+    }
+
+    .skin-btn.buy:disabled {
+      background: #223047;
+      color: var(--text-muted);
+      cursor: not-allowed;
+    }
+
+    .skin-btn.equip {
+      background: var(--cyan);
+      color: #08121B;
+    }
+
+    .skin-btn.active {
+      background: var(--green);
+      color: #08121B;
+      cursor: default;
+    }
+
+    
+
+    /* ==========================================================================
+       10. RESPONSIVIDAD
+       ========================================================================== */
+    @media (max-width: 900px) {
+      .lower-grid {
+        grid-template-columns: 1fr;
+      }
+      .graph-canvas-box {
+        height: 250px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .game-screen { padding: 6px 8px 18px; }
+      .days-grid { grid-template-columns: 1fr; }
+      .neo-input-wrap input { width: 46px; }
+      .calc-float { right: 10px; bottom: 10px; width: 228px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================================================
+       1. PANTALLA DE INICIO
+       ======================================================================== -->
+  <section id="titleScreen" class="title-screen">
+    <div class="title-card">
+      <div class="hero-drone-box" aria-hidden="true">
+        <svg class="hero-drone-svg" width="160" height="96" viewBox="0 0 160 96" fill="none">
+          <!-- Brazos -->
+          <line x1="24" y1="36" x2="136" y2="36" stroke="#94A3B8" stroke-width="5" stroke-linecap="round" />
+          <!-- Hélices -->
+          <line x1="10" y1="24" x2="48" y2="24" stroke="#22D3EE" stroke-width="4" stroke-linecap="round" />
+          <line x1="112" y1="24" x2="150" y2="24" stroke="#22D3EE" stroke-width="4" stroke-linecap="round" />
+          <line x1="29" y1="24" x2="29" y2="36" stroke="#64748B" stroke-width="3" />
+          <line x1="131" y1="24" x2="131" y2="36" stroke="#64748B" stroke-width="3" />
+          <!-- Chasis geométrico hexagonal/poligonal -->
+          <polygon points="56,24 104,24 114,40 96,54 64,54 46,40" fill="#1E293B" stroke="#22D3EE" stroke-width="3" />
+          <!-- Sensor central -->
+          <circle cx="80" cy="39" r="6" fill="#22D3EE" />
+          <!-- LEDs parpadeantes alrededor -->
+          <!--
+          <circle cx="52" cy="40" r="3.5" fill="#EF4444" class="led-blink" />
+          <circle cx="108" cy="40" r="3.5" fill="#34D399" class="led-blink-delay" />
+          <circle cx="64" cy="28" r="2.8" fill="#22D3EE" class="led-blink-delay" />
+          <circle cx="96" cy="28" r="2.8" fill="#22D3EE" class="led-blink" />
+          -->
+          <!-- Paquete -->
+          <rect x="65" y="60" width="30" height="22" rx="4" fill="#F59E0B" stroke="#FEF3C7" stroke-width="2" />
+          <line x1="72" y1="54" x2="72" y2="60" stroke="#94A3B8" stroke-width="2" />
+          <line x1="88" y1="54" x2="88" y2="60" stroke="#94A3B8" stroke-width="2" />
+        </svg>
+      </div>
+
+      <div>
+        <span class="logo-tag">Reparto de precisión</span>
+        <h1 class="logo-title">DRONE <span>EATS</span></h1>
+      </div>
+
+      <div class="title-actions">
+        <button id="btnContinue" class="btn-primary hidden" type="button">▶ Continuar</button>
+        <button id="btnStory" class="btn-primary" type="button">▶ Modo Historia</button>
+        <button id="btnTitleShop" class="btn-secondary" type="button">
+          <span>🎨 Taller</span>
+          <span id="titleCoins" class="coin-chip">$0</span>
+          <span id="titleShopDot" class="shop-dot hidden"></span>
+        </button>
+        <button class="btn-locked" type="button" disabled>🔒 Modo Infinito (Próximamente)</button>
+        <button id="btnResetProgress" class="btn-link-muted hidden" type="button">Reiniciar progreso</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       2. INTRO CÓMIC (3 VIÑETAS)
+       ======================================================================== -->
+  <section id="comicScreen" class="comic-screen hidden">
+    <div class="comic-card">
+      <div class="comic-top">
+        <div class="comic-dots" id="comicDots">
+          <span class="comic-dot active"></span>
+          <span class="comic-dot"></span>
+          <span class="comic-dot"></span>
+        </div>
+        <button id="btnComicSkip" class="btn-skip" type="button">Saltar ✕</button>
+      </div>
+      <div id="comicArt" class="comic-art"></div>
+      <p id="comicCaption" class="comic-caption"></p>
+      <button id="btnComicNext" class="btn-primary" type="button">Siguiente →</button>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       3. PANTALLA PRINCIPAL DE JUEGO
+       ======================================================================== -->
+  <main id="gameScreen" class="game-screen hidden">
+    <!-- BARRA SUPERIOR DELGADA -->
+    <header class="topbar">
+      <div class="tb-group">
+        <div class="tb-brand">
+          <div class="tb-brand-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="7" y="9" width="10" height="6" rx="2"></rect>
+              <path d="M2 7h6M16 7h6"></path>
+              <path d="M5 7v2M19 7v2"></path>
+              <path d="M12 15v5M9 18h6"></path>
+            </svg>
+          </div>
+          <span class="tb-brand-name">DRONE <span>EATS</span></span>
+        </div>
+        <button id="btnHome" class="tb-btn" type="button">🏠 Inicio</button>
+        <button id="btnDayPicker" class="tb-btn tb-day" type="button">Día 1 de 9 ▾</button>
+      </div>
+
+      <div class="tb-group">
+        <div id="hudCoins" class="tb-wallet">$0</div>
+        <button id="btnGameShop" class="tb-btn" type="button">
+          <span>🎨 Taller</span>
+          <span id="gameShopDot" class="shop-dot hidden"></span>
+        </button>
+        <button id="btnAudio" class="tb-btn" type="button" aria-label="Sonido">🔊</button>
+      </div>
+    </header>
+
+    <!-- ESCENARIO SUPERIOR (CALLE 2D) -->
+    <section class="stage-panel">
+      <div class="stage-canvas-wrap">
+        <canvas id="streetCanvas"></canvas>
+
+        <!-- Selector de velocidad 1x / 1.5x / 2x -->
+        <div class="speed-control" role="group" aria-label="Velocidad de simulación">
+          <button type="button" class="spd-btn active" data-spd="1">1x</button>
+          <button type="button" class="spd-btn" data-spd="1.5">1.5x</button>
+          <button type="button" class="spd-btn" data-spd="2">2x</button>
+        </div>
+
+        <!-- Cronómetro estilo cámara REC (arriba a la derecha) -->
+        <div id="recTimer" class="rec-timer">
+          <span class="rec-dot"></span>
+          <span class="rec-label">TIEMPO</span>
+          <span id="recValue" class="rec-value">00.0 s</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ZONA INFERIOR: 44% RUTA DEL DÍA (PAPEL) / 56% CONSOLA (NEO-RETRO) -->
+    <section class="lower-grid">
+      <!-- IZQUIERDA: RUTA DEL DÍA O MONITOR GPS ROTO (DÍA 9) -->
+      <div>
+        <div id="routeTicketPanel" class="ticket-shell">
+          <div class="ticket-perf-top"></div>
+          <div class="ticket-paper">
+            <div class="ticket-header">
+              <span class="ticket-title">Ruta del día</span>
+              <span id="ticketDayPill" class="ticket-day-pill">DÍA 1</span>
+            </div>
+            <div id="routeList" class="route-list"></div>
+            <div id="routeAlerts" class="route-alerts hidden"></div>
+          </div>
+        </div>
+
+        <!-- Día 9: Monitor GPS con vidrio roto -->
+        <div id="brokenGpsPanel" class="broken-gps-panel hidden">
+          <div class="broken-gps-head">⚠ MONITOR GPS DAÑADO — MODO MANUAL</div>
+          <div class="broken-gps-screen">
+            <canvas id="brokenGpsCanvas"></canvas>
+            <svg class="cracks-svg" viewBox="0 0 360 280" preserveAspectRatio="none" aria-hidden="true">
+              <g stroke="rgba(255,255,255,0.42)" stroke-width="1.35" fill="none" stroke-linecap="round">
+                <path d="M 308 38 L 266 76 L 234 102 L 194 114" />
+                <path d="M 308 38 L 358 14" />
+                <path d="M 308 38 L 348 88 L 360 120" />
+                <path d="M 308 38 L 288 0" />
+                <path d="M 266 76 L 284 142 L 262 192" />
+                <path d="M 266 76 L 214 58 L 176 22" />
+                <path d="M 46 244 L 88 206 L 106 168" />
+                <path d="M 46 244 L 0 264" />
+                <path d="M 46 244 L 74 280" />
+              </g>
+              <circle cx="308" cy="38" r="3" fill="rgba(255,255,255,0.65)" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- DERECHA: CONSOLA NEO-RETRO -->
+      <section id="consolePanel" class="console-shell">
+        <div class="console-header">
+          <div class="console-title">
+            <span class="console-led"></span>
+            <span>CONSOLA</span>
+          </div>
+
+          <div class="console-head-tools">
+            <div id="modeSwitch" class="mode-switch hidden" role="tablist">
+              <button id="btnTabConsole" class="mode-pill active" type="button" role="tab">Manual</button>
+              <button id="btnTabGraph" class="mode-pill" type="button" role="tab">Gráfica</button>
+            </div>
+            <button id="btnToggleCalc" class="tool-chip" type="button" title="Abrir o minimizar calculadora">
+              <span>🧮</span><span>Calculadora</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- VISTA CONSOLA CONSTRUCTIVA -->
+        <div id="consoleBlocksView">
+          <div class="console-add-bar">
+            <div class="add-btn-group">
+              <button id="btnAddMove" class="btn-add-move" type="button">Agregar instrucción</button>
+              <button id="btnAddWait" class="btn-add-wait" type="button"><span>⏸</span><span>Esperar</span></button>
+            </div>
+            <button id="btnClearUnlocked" class="btn-clear-soft" type="button" title="Limpia las instrucciones que no estén bloqueadas">
+              Limpiar
+            </button>
+          </div>
+
+          <div id="blocksZone" class="blocks-zone" style="margin-top: 9px;"></div>
+        </div>
+
+        <!-- VISTA MODO GRÁFICA x(t) (DESBLOQUEADA DÍA 3) -->
+        <div id="graphEditorView" class="hidden">
+          <div id="graphCanvasBox" class="graph-canvas-box">
+            <canvas id="graphCanvas"></canvas>
+          </div>
+          <div class="graph-footer">
+            <span id="graphStatus" class="graph-hint">Toca la cuadrícula desde (0 s, 0 m)</span>
+            <div style="display: flex; gap: 6px;">
+              <button id="btnGraphUndo" class="btn-clear-soft" type="button">↶ Deshacer</button>
+              <button id="btnGraphClear" class="btn-clear-soft" type="button">Limpiar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- BOTÓN DESPEGAR / DETENER -->
+        <div class="launch-bar">
+          <button id="btnLaunch" class="btn-primary" type="button">🚀 Despegar</button>
+          <button id="btnStop" class="btn-stop hidden" type="button">■ Detener</button>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <!-- CALCULADORA FLOTANTE NEO-RETRO -->
+  <aside id="calcFloat" class="calc-float hidden" aria-label="Calculadora">
+    <div id="calcDragHead" class="calc-head">
+      <span class="calc-title">🧮 CALCULADORA</span>
+      <button id="btnCalcClose" class="calc-close" type="button" aria-label="Minimizar">✕</button>
+    </div>
+    <div class="calc-display">
+      <div id="calcExpr" class="calc-expr"></div>
+      <div id="calcVal" class="calc-val">0</div>
+    </div>
+    <div class="calc-keys">
+      <button type="button" class="ckey clr" data-c="C">C</button>
+      <button type="button" class="ckey clr" data-c="B">⌫</button>
+      <button type="button" class="ckey op" data-c="±">±</button>
+      <button type="button" class="ckey op" data-c="/">÷</button>
+
+      <button type="button" class="ckey" data-c="7">7</button>
+      <button type="button" class="ckey" data-c="8">8</button>
+      <button type="button" class="ckey" data-c="9">9</button>
+      <button type="button" class="ckey op" data-c="*">×</button>
+
+      <button type="button" class="ckey" data-c="4">4</button>
+      <button type="button" class="ckey" data-c="5">5</button>
+      <button type="button" class="ckey" data-c="6">6</button>
+      <button type="button" class="ckey op" data-c="-">−</button>
+
+      <button type="button" class="ckey" data-c="1">1</button>
+      <button type="button" class="ckey" data-c="2">2</button>
+      <button type="button" class="ckey" data-c="3">3</button>
+      <button type="button" class="ckey op" data-c="+">+</button>
+
+      <button type="button" class="ckey" data-c="0" style="grid-column: span 2;">0</button>
+      <button type="button" class="ckey" data-c=".">.</button>
+      <button type="button" class="ckey eq" data-c="=">=</button>
+    </div>
+  </aside>
+
+  <!-- BARRITA GUÍA DE 1 LÍNEA -->
+  <div id="guideOverlay" class="guide-overlay hidden"></div>
+  <div id="guideBar" class="guide-bar hidden">
+    <span id="guideText"></span>
+    <button id="btnGuideOk" class="guide-ok hidden" type="button">OK →</button>
+  </div>
+
+  <!-- OVERLAY PANTALLA COMPLETA: AVISO DE TALLER (JETPACK JOYRIDE) -->
+  <div id="shopCoachOverlay" class="shop-coach-overlay hidden"></div>
+  <div id="shopCoachArrow" class="shop-coach-arrow hidden">⬆</div>
+  <div id="shopCoachCard" class="shop-coach-card hidden">
+    <div style="font-family: var(--font-display); font-size: 1.45rem; color: var(--gold); margin-bottom: 6px;">
+      ✨ ¡YA TE ALCANZA PARA PERSONALIZAR TU DRON!
+    </div>
+    <p style="font-size: 0.88rem; color: var(--text-sub); margin-bottom: 14px;">
+      <strong>¡Juntaste suficiente!</strong> Entra al <strong>Taller</strong> arriba para equipar tu primera skin.
+    </p>
+    <div class="modal-actions">
+      <button id="btnCoachLater" class="btn-secondary" type="button" style="padding: 9px 12px; font-size: 0.92rem;">Luego</button>
+      <button id="btnCoachOpen" class="btn-primary" type="button" style="padding: 9px 12px; font-size: 0.96rem;">Ir al Taller 🎨</button>
+    </div>
+  </div>
+
+  <!-- TOASTS -->
+  <div id="toastHost" class="toast-host" aria-live="polite"></div>
+
+  <!-- MODAL DE RESULTADO (MISIÓN CUMPLIDA / FALLO) -->
+  <div id="resultModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div id="resultBox" class="modal-box">
+      <button id="btnCloseResult" class="modal-close" type="button" aria-label="Cerrar">✕</button>
+      <div id="resKicker" class="res-kicker">MISIÓN CUMPLIDA</div>
+      <h2 id="resTitle" class="res-title">¡Misión Cumplida!</h2>
+      <div id="resStars" class="res-stars">★★★★★</div>
+      <div id="resReview" class="res-review"></div>
+      <div id="resDiag" class="res-diag hidden"></div>
+      <div id="resCoinsRow" class="res-coins hidden">
+        <span>Propinas ganadas</span>
+        <span id="resCoinsVal">+$30</span>
+      </div>
+      <div class="modal-actions">
+        <button id="btnRetry" class="btn-secondary" type="button">↺ Reintentar</button>
+        <button id="btnNextDay" class="btn-primary" type="button">Siguiente Día →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE AVISO (DESBLOQUEO MODO GRÁFICA / DÍA 9 EMERGENCIA / CONFIRMAR RESET) -->
+  <div id="noticeModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div id="noticeBox" class="modal-box is-cyan">
+      <div id="noticeKicker" class="res-kicker" style="color: var(--cyan);">NOVEDAD</div>
+      <h2 id="noticeTitle" class="res-title" style="font-size: 1.65rem;">¡Nuevo: Modo Gráfica!</h2>
+      <p id="noticeBody" style="font-size: 0.94rem; color: var(--text-sub); text-align: center; margin: 10px 0 18px; line-height: 1.5;"></p>
+      <div class="modal-actions" id="noticeActions"></div>
+    </div>
+  </div>
+
+  <!-- MODAL SELECTOR DE LOS 9 DÍAS -->
+  <div id="daysModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-box is-cyan">
+      <button id="btnCloseDays" class="modal-close" type="button" aria-label="Cerrar">✕</button>
+      <h2 class="res-title" style="font-size: 1.5rem;">Modo Historia · 9 Días</h2>
+      <div id="daysGrid" class="days-grid"></div>
+    </div>
+  </div>
+
+  <!-- MODAL TALLER DE SKINS -->
+  <div id="shopModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-box is-gold">
+      <button id="btnCloseShop" class="modal-close" type="button" aria-label="Cerrar">✕</button>
+      <div style="display: flex; align-items: center; justify-content: space-between; padding-right: 36px;">
+        <h2 class="res-title" style="font-size: 1.5rem; text-align: left;">🎨 Taller de Drones</h2>
+        <span id="shopCoins" class="coin-chip">$0</span>
+      </div>
+      <div id="shopList" class="shop-list"></div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      /* ======================================================================
+         1. CONSTANTES, SKINS Y LOS 9 DÍAS PROGRESIVOS
+         ====================================================================== */
+      const SAVE_KEY = 'drone_eats_v2_save';
+      const MAX_SPEED = 20;
+      const DELIVERY_TOL = 2.5;
+      const FIRST_SKIN_PRICE = 60;
+
+      // Colores fijos por orden de entrega (#1, #2, #3, #4)
+      const ORDER_COLORS = ['#F43F5E', '#0EA5E9', '#8B5CF6', '#D97706'];
+
+      const SKINS = [
+        { id: 'classic', name: 'Clásico Táctico', price: 0, icon: '🚁', desc: 'Chasis oscuro con LEDs cian y menta.' },
+        { id: 'sombrero', name: 'Don Sombrero', price: 60, icon: '🤠', desc: 'Silueta táctica con sombrero y estela tricolor.' },
+        { id: 'cyber', name: 'Neón Cyber', price: 110, icon: '⚡', desc: 'Bordes magenta y estela eléctrica neón.' },
+        { id: 'googly', name: 'Ojos Saltones', price: 160, icon: '👀', desc: 'Sensores saltones que miran hacia donde vuelas.' },
+        { id: 'gold', name: 'Dorado VIP', price: 240, icon: '👑', desc: 'Acabado oro pulido con destellos dorados.' }
+      ];
+
+      const DAYS = [
+        {
+          day: 1,
+          name: 'Primer Pedido',
+          maxX: 100,
+          maxT: 10,
+          weather: 'sunny',
+          reward: 30,
+          buildings: [
+            { x: 18, color: '#334155', roof: '#475569', h: 0.42 },
+            { x: 40, color: '#0F766E', roof: '#14B8A6', h: 0.48 },
+            { x: 66, color: '#3B429F', roof: '#4F46E5', h: 0.44 },
+            { x: 88, color: '#7C2D12', roof: '#9A3412', h: 0.40 }
+          ],
+          deliveries: [
+            { num: 1, food: '🍕', label: 'Pizza', x: 40, t: 4 }
+          ],
+          obstacles: []
+        },
+        {
+          day: 2,
+          name: 'Entregas Múltiples',
+          maxX: 100,
+          maxT: 10,
+          weather: 'sunny',
+          reward: 50,
+          buildings: [
+            { x: 14, color: '#334155', roof: '#475569', h: 0.40 },
+            { x: 30, color: '#1E3A5F', roof: '#2563EB', h: 0.47 },
+            { x: 52, color: '#4C1D95', roof: '#6D28D9', h: 0.43 },
+            { x: 70, color: '#0F766E', roof: '#14B8A6', h: 0.48 },
+            { x: 90, color: '#7C2D12', roof: '#9A3412', h: 0.41 }
+          ],
+          deliveries: [
+            { num: 1, food: '🍔', label: 'Hamburguesa', x: 30, t: 3 },
+            { num: 2, food: '🌮', label: 'Tacos', x: 70, t: 8 }
+          ],
+          obstacles: []
+        },
+        {
+          day: 3,
+          name: 'Ida y Reversa',
+          maxX: 100,
+          maxT: 10,
+          weather: 'sunny',
+          reward: 50,
+          buildings: [
+            { x: 20, color: '#1E3A5F', roof: '#2563EB', h: 0.48 },
+            { x: 42, color: '#334155', roof: '#475569', h: 0.41 },
+            { x: 60, color: '#7C2D12', roof: '#9A3412', h: 0.48 },
+            { x: 84, color: '#0F766E', roof: '#14B8A6', h: 0.43 }
+          ],
+          deliveries: [
+            { num: 1, food: '🍕', label: 'Pizza', x: 60, t: 4 },
+            { num: 2, food: '🍟', label: 'Papas', x: 20, t: 8 }
+          ],
+          obstacles: []
+        },
+        {
+          day: 4,
+          name: 'Los 3 Edificios',
+          maxX: 100,
+          maxT: 20,
+          weather: 'sunny',
+          reward: 70,
+          buildings: [
+            { x: 20, color: '#1E3A5F', roof: '#2563EB', h: 0.48 },
+            { x: 50, color: '#4C1D95', roof: '#6D28D9', h: 0.50 },
+            { x: 90, color: '#0F766E', roof: '#14B8A6', h: 0.48 }
+          ],
+          deliveries: [
+            { num: 1, food: '🌮', label: 'Tacos', x: 50, t: 5 },
+            { num: 2, food: '🍕', label: 'Pizza', x: 20, t: 8 },
+            { num: 3, food: '🥤', label: 'Bebida', x: 20, t: 11 },
+            { num: 4, food: '🍣', label: 'Sushi', x: 90, t: 18 }
+          ],
+          obstacles: []
+        },
+        {
+          day: 5,
+          name: 'Cuidado con Firulais',
+          maxX: 100,
+          maxT: 12,
+          weather: 'sunny',
+          reward: 60,
+          buildings: [
+            { x: 14, color: '#334155', roof: '#475569', h: 0.40 },
+            { x: 30, color: '#7C2D12', roof: '#9A3412', h: 0.46 },
+            { x: 60, color: '#0F766E', roof: '#14B8A6', h: 0.49 },
+            { x: 86, color: '#1E3A5F', roof: '#2563EB', h: 0.42 }
+          ],
+          deliveries: [
+            { num: 1, food: '🍕', label: 'Pizza', x: 60, t: 10 }
+          ],
+          obstacles: [
+            {
+              id: 'dog5',
+              type: 'dog',
+              name: 'Firulais',
+              x: 30,
+              halfX: 4,
+              t1: 1,
+              t2: 6,
+              alertText: '⚠️ FIRULAIS · 30 m · 1 s – 6 s'
+            }
+          ]
+        },
+        {
+          day: 6,
+          name: 'Incendio en Azotea',
+          maxX: 100,
+          maxT: 16,
+          weather: 'sunny', // Estrictamente soleado, SIN lluvia
+          reward: 80,
+          buildings: [
+            { x: 18, color: '#334155', roof: '#475569', h: 0.42 },
+            { x: 40, color: '#1E3A5F', roof: '#2563EB', h: 0.48 },
+            { x: 50, color: '#7C2D12', roof: '#9A3412', h: 0.45 },
+            { x: 80, color: '#0F766E', roof: '#14B8A6', h: 0.48 }
+          ],
+          deliveries: [
+            { num: 1, food: '🍔', label: 'Hamburguesa', x: 80, t: 10 },
+            { num: 2, food: '🌮', label: 'Tacos', x: 40, t: 14 }
+          ],
+          obstacles: [
+            {
+              id: 'fire6',
+              type: 'fire',
+              name: 'Incendio',
+              x: 50,
+              halfX: 4,
+              t1: 4,
+              t2: 8,
+              alertText: '⚠️ INCENDIO · 50 m · 4 s – 8 s'
+            }
+          ]
+        },
+        {
+          day: 7,
+          name: 'Tormenta Eléctrica',
+          maxX: 100,
+          maxT: 16,
+          weather: 'storm', // Únicamente aquí hay lluvia y tormenta
+          reward: 80,
+          buildings: [
+            { x: 20, color: '#1E3A5F', roof: '#2563EB', h: 0.48 },
+            { x: 40, color: '#334155', roof: '#475569', h: 0.46 },
+            { x: 70, color: '#4C1D95', roof: '#6D28D9', h: 0.49 },
+            { x: 90, color: '#1E293B', roof: '#475569', h: 0.42 }
+          ],
+          deliveries: [
+            { num: 1, food: '🍕', label: 'Pizza', x: 70, t: 10 },
+            { num: 2, food: '☕', label: 'Café', x: 20, t: 15 }
+          ],
+          obstacles: [
+            {
+              id: 'bolt7',
+              type: 'lightning',
+              name: 'Rayo',
+              x: 40,
+              halfX: 4,
+              t1: 3,
+              t2: 6,
+              alertText: '⚠️ RAYO ELÉCTRICO · 40 m · 3 s – 6 s'
+            }
+          ]
+        },
+        {
+          day: 8,
+          name: 'Bandada de Palomas',
+          maxX: 100,
+          maxT: 18,
+          weather: 'sunny',
+          reward: 60,
+          buildings: [
+            { x: 14, color: '#334155', roof: '#475569', h: 0.42 },
+            { x: 30, color: '#1E3A5F', roof: '#2563EB', h: 0.48 },
+            { x: 56, color: '#4C1D95', roof: '#6D28D9', h: 0.43 },
+            { x: 80, color: '#0F766E', roof: '#14B8A6', h: 0.49 }
+          ],
+          deliveries: [
+            { num: 1, food: '🍣', label: 'Sushi', x: 80, t: 11 },
+            { num: 2, food: '🍦', label: 'Helado', x: 30, t: 16 }
+          ],
+          obstacles: [
+            {
+              id: 'pigeons8',
+              type: 'pigeons',
+              name: 'Palomas',
+              x1: 80,
+              x2: 30,
+              halfX: 4,
+              t1: 2,
+              t2: 7,
+              alertText: '⚠️ PALOMAS · 80 m → 30 m · 2 s – 7 s'
+            }
+          ]
+        },
+        {
+          day: 9,
+          name: 'Piloto Automático Dañado',
+          maxX: 100,
+          maxT: 16,
+          weather: 'sunny',
+          emergency: true,
+          reward: 100,
+          buildings: [
+            { x: 14, color: '#334155', roof: '#475569', h: 0.41 },
+            { x: 30, color: '#7C2D12', roof: '#9A3412', h: 0.47 },
+            { x: 56, color: '#4C1D95', roof: '#6D28D9', h: 0.43 },
+            { x: 80, color: '#0F766E', roof: '#14B8A6', h: 0.49 }
+          ],
+          gpsRoute: [
+            { t: 0, x: 0 },
+            { t: 2, x: 20 },
+            { t: 5, x: 20 },
+            { t: 9, x: 80 },
+            { t: 14, x: 30 }
+          ],
+          deliveries: [
+            { num: 1, food: '🍕', label: 'Pizza', x: 80, t: 9 },
+            { num: 2, food: '🍔', label: 'Hamburguesa', x: 30, t: 14 }
+          ],
+          obstacles: [
+            {
+              id: 'dog9',
+              type: 'dog',
+              name: 'Firulais',
+              x: 30,
+              halfX: 4,
+              t1: 1,
+              t2: 4,
+              alertText: '⚠️ FIRULAIS · 30 m · 1 s – 4 s'
+            }
+          ]
+        }
+      ];
+
+      const COMIC_PANELS = [
+        {
+          caption: '¡Bienvenido a Drone Eats! Hoy te estrenas programando drones repartidores.',
+          svg: `
+            <svg viewBox="0 0 520 230" width="100%" height="100%">
+              <defs>
+                <linearGradient id="cSky1" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#1D4E89"/>
+                  <stop offset="100%" stop-color="#F6C97E"/>
+                </linearGradient>
+              </defs>
+              <rect width="520" height="230" fill="url(#cSky1)"/>
+              <rect y="175" width="520" height="55" fill="#50617D"/>
+              <rect x="44" y="70" width="176" height="105" fill="#162A4A"/>
+              <rect x="38" y="62" width="188" height="12" fill="#EA580C"/>
+              <text x="132" y="102" text-anchor="middle" fill="#EA580C" font-family="Oswald, sans-serif" font-size="18" font-weight="700">DRONE EATS INC</text>
+              <rect x="96" y="120" width="72" height="55" fill="#6BD3FF" opacity="0.75"/>
+              <g transform="translate(355, 96)">
+                <!-- Brazos -->
+                <line x1="-52.5" y1="2.5" x2="52.5" y2="2.5" stroke="#94A3B8" stroke-width="6.25" />
+                <!-- Hélices -->
+                <line x1="-60" y1="-7.5" x2="-25" y2="-7.5" stroke="#22D3EE" stroke-width="5.5" />
+                <line x1="25" y1="-7.5" x2="60" y2="-7.5" stroke="#22D3EE" stroke-width="5.5" />
+                <!-- Chasis geométrico hexagonal exacto -->
+                <polygon points="-27.5,-12.5 27.5,-12.5 35,7.5 20,20 -20,20 -35,7.5" fill="#1e293b" stroke="#38bdf8" stroke-width="4.5" />
+                <!-- Sensor central -->
+                <circle cx="0" cy="2.5" r="8" fill="#22D3EE" />
+                <!-- Paquete -->
+                <rect x="-17.5" y="25" width="35" height="25" rx="4" fill="#F59E0B" stroke="#FEF3C7" stroke-width="2" />
+                <text x="-1" y="44" text-anchor="middle" font-size="18">🍕</text>
+              </g>
+            </svg>`
+        },
+        {
+          caption: 'Los clientes tienen hambre y cero paciencia. Calcula bien o la comida acabará en el piso.',
+          svg: `
+            <svg viewBox="0 0 520 230" width="100%" height="100%">
+              <rect width="520" height="230" fill="#E0F2FE"/>
+              <rect y="175" width="520" height="55" fill="#475569"/>
+              <rect x="70" y="44" width="130" height="131" fill="#0F766E"/>
+              <rect x="64" y="38" width="142" height="10" fill="#14B8A6"/>
+              <rect x="102" y="96" width="66" height="36" fill="#0F172A"/>
+              <circle cx="135" cy="112" r="10" fill="#FED7AA"/>
+              <rect x="125" y="122" width="20" height="10" fill="#F43F5E"/>
+              <rect x="158" y="20" width="84" height="32" rx="10" fill="#182030" stroke="#F43F5E" stroke-width="2.5"/>
+              <text x="200" y="41" text-anchor="middle" fill="#FFFFFF" font-family="Oswald, sans-serif" font-size="15">¡🍕 🕑!</text>
+              <g transform="translate(372, 168)">
+                <ellipse cx="0" cy="8" rx="34" ry="8" fill="#EF4444" opacity="0.28"/>
+                <text x="0" y="2" text-anchor="middle" font-size="30">💥🍕</text>
+                <text x="0" y="-30" text-anchor="middle" font-family="Oswald, sans-serif" font-size="14" fill="#CF2B2B" font-weight="600">¡SPLASH!</text>
+              </g>
+            </svg>`
+        },
+        {
+          caption: 'Tu jefe salió de vacaciones. ¡La ciudad es tuya!',
+          svg: `
+            <svg viewBox="0 0 500 220" width="100%" height="100%">
+              <rect width="500" height="220" fill="#BAE6FD"/>
+              <circle cx="425" cy="48" r="28" fill="#FACC15"/>
+              <rect y="155" width="500" height="65" fill="#FDE68A"/>
+              <rect y="130" width="500" height="25" fill="#38BDF8"/>
+              <!-- Jefe con gafas de sol y maleta -->
+              <g transform="translate(150, 128)">
+                <circle cx="0" cy="-30" r="18" fill="#FED7AA"/>
+                <rect x="-14" y="-35" width="12" height="7" rx="2" fill="#1E293B"/>
+                <rect x="2" y="-35" width="12" height="7" rx="2" fill="#1E293B"/>
+                <rect x="-16" y="-12" width="32" height="45" fill="#10B981"/>
+                <rect x="26" y="4" width="30" height="24" rx="4" fill="#FF5A36"/>
+                <path d="M35 4 L35 -3 L47 -3 L47 4" stroke="#1E293B" stroke-width="2.5" fill="none"/>
+              </g>
+              <rect x="235" y="46" width="142" height="44" rx="14" fill="#FAFAFA" stroke="#1E293B" stroke-width="2.5"/>
+              <text x="306" y="75" text-anchor="middle" font-family="Oswald, sans-serif" font-size="18" fill="#1E293B" font-weight="600">¡SUERTE! 🌴✈️</text>
+            </svg>`
+        }
+      ];
+
+      const REVIEWS = {
+        win: [
+          '“¡Cayó directo en mis manos, todavía humeaba! 5 estrellas.”',
+          '“Puntualidad de reloj suizo. ¡Toma tu propina!”',
+          '“Cero salsas derramadas. Este dron sí sabe de física.”',
+          '“Llegó en el segundo exacto. ¡Repartidor leyenda!”'
+        ],
+        miss: [
+          '“Mi pedido cayó en un bote de basura a media cuadra...”',
+          '“Me quedé esperando en la ventana y la pizza aterrizó en la banqueta.”',
+          '“Un vecino gruñón recibió mis tacos en lugar de mí.”'
+        ],
+        dog: [
+          '“Firulais cenó delicioso en su azotea y yo sigo con hambre.”',
+          '“¡GUAU! El perro atrapó mi paquete en el aire.”'
+        ],
+        fire: [
+          '“Pedí comida calientita, ¡no rostizada al carbón!”',
+          '“El dron cruzó justo por las llamas de la azotea.”'
+        ],
+        lightning: [
+          '“¡BZZT! Un rayo dejó chispeando mi pedido en pleno vuelo.”',
+          '“Demasiados voltios para mi café.”'
+        ],
+        pigeons: [
+          '“Las palomas hicieron banquete aéreo con mi sushi.”',
+          '“Solo llegaron plumas a mi ventana.”'
+        ]
+      };
+
+      /* ======================================================================
+         2. AUDIO SINTETIZADO (WEB AUDIO API)
+         ====================================================================== */
+      const SFX = {
+        ctx: null,
+        enabled: true,
+
+        init() {
+          if (!this.ctx && (window.AudioContext || window.webkitAudioContext)) {
+            const Ctx = window.AudioContext || window.webkitAudioContext;
+            this.ctx = new Ctx();
+          }
+          if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume().catch(() => {});
+          }
+        },
+
+        tone(f1, dur, type = 'sine', vol = 0.065, delay = 0, f2 = null) {
+          if (!this.enabled) return;
+          try {
+            this.init();
+            if (!this.ctx) return;
+            const t0 = this.ctx.currentTime + delay;
+            const osc = this.ctx.createOscillator();
+            const g = this.ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(f1, t0);
+            if (f2 !== null) osc.frequency.exponentialRampToValueAtTime(Math.max(40, f2), t0 + dur);
+            g.gain.setValueAtTime(vol, t0);
+            g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+            osc.connect(g);
+            g.connect(this.ctx.destination);
+            osc.start(t0);
+            osc.stop(t0 + dur);
+          } catch (e) {}
+        },
+
+        click() { this.tone(540, 0.035, 'sine', 0.04); },
+        lock() { this.tone(420, 0.04, 'triangle', 0.05, 0, 620); },
+        warn() { this.tone(240, 0.12, 'sawtooth', 0.055, 0, 150); },
+        takeoff() {
+          this.tone(240, 0.2, 'triangle', 0.06, 0, 560);
+          this.tone(360, 0.18, 'sine', 0.04, 0.05, 760);
+        },
+        deliver() {
+          this.tone(660, 0.08, 'triangle', 0.08, 0);
+          this.tone(990, 0.14, 'triangle', 0.08, 0.08);
+        },
+        splat() {
+          this.tone(480, 0.2, 'sine', 0.06, 0, 140);
+          this.tone(110, 0.14, 'square', 0.05, 0.18, 60);
+        },
+        bark() {
+          this.tone(390, 0.08, 'sawtooth', 0.07, 0, 210);
+          this.tone(440, 0.1, 'sawtooth', 0.07, 0.12, 180);
+        },
+        fire() {
+          this.tone(180, 0.24, 'sawtooth', 0.06, 0, 95);
+          this.tone(320, 0.18, 'triangle', 0.05, 0.05, 120);
+        },
+        bolt() {
+          this.tone(1350, 0.06, 'sawtooth', 0.07, 0, 240);
+          this.tone(860, 0.14, 'square', 0.055, 0.06, 120);
+        },
+        pigeons() {
+          for (let i = 0; i < 4; i++) {
+            this.tone(720 + i * 70, 0.05, 'triangle', 0.05, i * 0.055, 420);
+          }
+        },
+        win() {
+          this.tone(523.25, 0.09, 'triangle', 0.08, 0);
+          this.tone(659.25, 0.09, 'triangle', 0.08, 0.09);
+          this.tone(783.99, 0.11, 'triangle', 0.08, 0.18);
+          this.tone(1046.5, 0.24, 'sine', 0.08, 0.28);
+        }
+      };
+
+      /* ======================================================================
+         3. ESTADO GLOBAL Y PERSISTENCIA
+         ====================================================================== */
+      const state = {
+        screen: 'title',       // 'title' | 'comic' | 'game'
+        comicIdx: 0,
+        dayIdx: 0,             // 0..8
+        pilotMode: 'console',  // 'console' | 'graph'
+        simSpeed: 1,
+        hoveredDeliveryIdx: -1,
+
+        save: {
+          coins: 0,
+          ownedSkins: ['classic'],
+          equippedSkin: 'classic',
+          stars: {},           // { 1: 5, ... }
+          introSeen: false,
+          graphUnlockedSeen: false,
+          shopCoachSeen: false,
+          day5AlertGuideSeen: false,
+          day9IntroSeen: false,
+          day1GuideSeen: false,
+          day2GuideSeen: false,
+          solutions: {} // { [dayNum]: { mode, blocks, nodes } }
+        },
+
+        // Programación conservada por día
+        consoleBlocks: {},     // { dayNum: [ { id, type:'move'|'wait', dur:'', vel:'', locked:false } ] }
+        graphNodes: {},        // { dayNum: [ { t, x } ] }
+        discoveredObs: {},     // { dayNum: Set(obsId) }
+        crashMarks: {},        // { dayNum: [ { t, x } ] }
+        discoveredTargets: {}, // { dayNum: Set(delIdx) }
+
+        // Guías contextuales activas
+        guide: {
+          kind: null,          // 'day1' | 'day2' | 'graphTut' | 'day5Alert' | null
+          step: 0
+        },
+
+        // Pendiente mostrar tutorial de Modo Gráfica tras cerrar aviso de Taller
+        pendingGraphUnlock: false,
+
+        // Drag & drop de bloques
+        dragIdx: null,
+        graphHover: null,
+
+        // Estado de la calculadora
+        calc: {
+          current: '0',
+          prev: null,
+          op: null,
+          resetNext: false
+        },
+
+        // Simulación física continua
+        sim: {
+          status: 'idle',      // 'idle' | 'flying' | 'settling' | 'done'
+          t: 0,
+          x: 0,
+          v: 0,
+          endT: 10,
+          activeBlockIdx: -1,
+          plan: [],
+          trace: [],
+          drops: [],
+          delivered: {},
+          popups: [],          // Avisos breves encima del dron: { x, y, text, color, life }
+          collision: null,
+          collided: false,
+          settleTimer: 0
+        },
+
+        particles: [],
+        trail: [],
+        rain: [],
+        clouds: [
+          { x: 0.14, y: 0.16, s: 1.0, spd: 0.007 },
+          { x: 0.50, y: 0.11, s: 1.25, spd: 0.005 },
+          { x: 0.84, y: 0.19, s: 0.9, spd: 0.009 }
+        ],
+        lastTime: performance.now()
+      };
+
+      let blockUid = 1;
+
+      /* ======================================================================
+         4. REFERENCIAS AL DOM
+         ====================================================================== */
+      const $ = (id) => document.getElementById(id);
+      const dom = {
+        titleScreen: $('titleScreen'),
+        btnContinue: $('btnContinue'),
+        btnStory: $('btnStory'),
+        btnTitleShop: $('btnTitleShop'),
+        titleCoins: $('titleCoins'),
+        titleShopDot: $('titleShopDot'),
+        btnResetProgress: $('btnResetProgress'),
+
+        comicScreen: $('comicScreen'),
+        comicDots: $('comicDots'),
+        comicArt: $('comicArt'),
+        comicCaption: $('comicCaption'),
+        btnComicNext: $('btnComicNext'),
+        btnComicSkip: $('btnComicSkip'),
+
+        gameScreen: $('gameScreen'),
+        btnHome: $('btnHome'),
+        btnDayPicker: $('btnDayPicker'),
+        hudCoins: $('hudCoins'),
+        btnGameShop: $('btnGameShop'),
+        gameShopDot: $('gameShopDot'),
+        btnAudio: $('btnAudio'),
+
+        streetCanvas: $('streetCanvas'),
+        speedBtns: document.querySelectorAll('.spd-btn'),
+        recTimer: $('recTimer'),
+        recValue: $('recValue'),
+
+        routeTicketPanel: $('routeTicketPanel'),
+        ticketDayPill: $('ticketDayPill'),
+        routeList: $('routeList'),
+        routeAlerts: $('routeAlerts'),
+        brokenGpsPanel: $('brokenGpsPanel'),
+        brokenGpsCanvas: $('brokenGpsCanvas'),
+
+        consolePanel: $('consolePanel'),
+        modeSwitch: $('modeSwitch'),
+        btnTabConsole: $('btnTabConsole'),
+        btnTabGraph: $('btnTabGraph'),
+        btnToggleCalc: $('btnToggleCalc'),
+
+        consoleBlocksView: $('consoleBlocksView'),
+        btnAddMove: $('btnAddMove'),
+        btnAddWait: $('btnAddWait'),
+        btnClearUnlocked: $('btnClearUnlocked'),
+        blocksZone: $('blocksZone'),
+
+        graphEditorView: $('graphEditorView'),
+        graphCanvasBox: $('graphCanvasBox'),
+        graphCanvas: $('graphCanvas'),
+        graphStatus: $('graphStatus'),
+        btnGraphUndo: $('btnGraphUndo'),
+        btnGraphClear: $('btnGraphClear'),
+
+        btnLaunch: $('btnLaunch'),
+        btnStop: $('btnStop'),
+
+        calcFloat: $('calcFloat'),
+        calcDragHead: $('calcDragHead'),
+        btnCalcClose: $('btnCalcClose'),
+        calcExpr: $('calcExpr'),
+        calcVal: $('calcVal'),
+
+        guideBar: $('guideBar'),
+        guideOverlay: $('guideOverlay'),
+        guideText: $('guideText'),
+        btnGuideOk: $('btnGuideOk'),
+
+        shopCoachOverlay: $('shopCoachOverlay'),
+        shopCoachArrow: $('shopCoachArrow'),
+        shopCoachCard: $('shopCoachCard'),
+        btnCoachLater: $('btnCoachLater'),
+        btnCoachOpen: $('btnCoachOpen'),
+
+        toastHost: $('toastHost'),
+
+        resultModal: $('resultModal'),
+        resultBox: $('resultBox'),
+        btnCloseResult: $('btnCloseResult'),
+        resKicker: $('resKicker'),
+        resTitle: $('resTitle'),
+        resStars: $('resStars'),
+        resReview: $('resReview'),
+        resDiag: $('resDiag'),
+        resCoinsRow: $('resCoinsRow'),
+        resCoinsVal: $('resCoinsVal'),
+        btnRetry: $('btnRetry'),
+        btnNextDay: $('btnNextDay'),
+
+        noticeModal: $('noticeModal'),
+        noticeBox: $('noticeBox'),
+        noticeKicker: $('noticeKicker'),
+        noticeTitle: $('noticeTitle'),
+        noticeBody: $('noticeBody'),
+        noticeActions: $('noticeActions'),
+
+        daysModal: $('daysModal'),
+        btnCloseDays: $('btnCloseDays'),
+        daysGrid: $('daysGrid'),
+
+        shopModal: $('shopModal'),
+        btnCloseShop: $('btnCloseShop'),
+        shopCoins: $('shopCoins'),
+        shopList: $('shopList')
+      };
+
+      const streetCtx = dom.streetCanvas.getContext('2d');
+      const graphCtx = dom.graphCanvas.getContext('2d');
+      const brokenCtx = dom.brokenGpsCanvas.getContext('2d');
+
+      /* ======================================================================
+         5. PERSISTENCIA Y UTILIDADES
+         ====================================================================== */
+      function loadSave() {
+        try {
+          const raw = localStorage.getItem(SAVE_KEY);
+          if (raw) {
+            const p = JSON.parse(raw);
+            state.save.coins = Number(p.coins) || 0;
+            state.save.ownedSkins = Array.isArray(p.ownedSkins) ? p.ownedSkins : ['classic'];
+            if (!state.save.ownedSkins.includes('classic')) state.save.ownedSkins.push('classic');
+            state.save.equippedSkin = p.equippedSkin || 'classic';
+            state.save.stars = p.stars && typeof p.stars === 'object' ? p.stars : {};
+            state.save.introSeen = Boolean(p.introSeen);
+            state.save.graphUnlockedSeen = Boolean(p.graphUnlockedSeen);
+            state.save.shopCoachSeen = Boolean(p.shopCoachSeen);
+            state.save.day5AlertGuideSeen = Boolean(p.day5AlertGuideSeen);
+            state.save.day9IntroSeen = Boolean(p.day9IntroSeen);
+            state.save.day1GuideSeen = Boolean(p.day1GuideSeen);
+            state.save.day2GuideSeen = Boolean(p.day2GuideSeen);
+            state.save.solutions = p.solutions && typeof p.solutions === 'object' ? p.solutions : {};
+            Object.entries(state.save.solutions).forEach(([dayKey, sol]) => {
+              const dayNum = Number(dayKey);
+              if (Array.isArray(sol.blocks) && sol.blocks.length > 0) {
+                state.consoleBlocks[dayNum] = sol.blocks.map((b) => ({ ...b, id: blockUid++ }));
+              }
+              if (Array.isArray(sol.nodes) && sol.nodes.length > 1) {
+                state.graphNodes[dayNum] = sol.nodes.map((n) => ({ t: n.t, x: n.x }));
+              }
+            });
+          }
+        } catch (e) {}
+        refreshTitleAndWallet();
+      }
+
+      function persistSave() {
+        try {
+          localStorage.setItem(SAVE_KEY, JSON.stringify(state.save));
+        } catch (e) {}
+        refreshTitleAndWallet();
+      }
+
+      function hasAffordableNewSkin() {
+        return SKINS.some((s) => !state.save.ownedSkins.includes(s.id) && state.save.coins >= s.price);
+      }
+
+      function refreshTitleAndWallet() {
+        const txt = `$${state.save.coins}`;
+        dom.titleCoins.textContent = txt;
+        dom.hudCoins.textContent = txt;
+        dom.shopCoins.textContent = txt;
+
+        const dotVisible = hasAffordableNewSkin();
+        dom.titleShopDot.classList.toggle('hidden', !dotVisible);
+        dom.gameShopDot.classList.toggle('hidden', !dotVisible);
+
+        const hasProgress = state.save.introSeen || Object.keys(state.save.stars).length > 0 || state.save.coins > 0;
+        dom.btnContinue.classList.toggle('hidden', !hasProgress);
+        dom.btnStory.textContent = hasProgress ? '▶ Nueva partida / Día 1' : '▶ Modo Historia';
+        dom.btnResetProgress.classList.toggle('hidden', !hasProgress);
+      }
+
+      function showToast(msg) {
+        const el = document.createElement('div');
+        el.className = 'toast';
+        el.textContent = msg;
+        dom.toastHost.appendChild(el);
+        setTimeout(() => {
+          el.style.opacity = '0';
+          el.style.transition = 'opacity 0.2s ease';
+          setTimeout(() => el.remove(), 220);
+        }, 2600);
+      }
+
+      function clamp(v, min, max) {
+        return Math.max(min, Math.min(max, v));
+      }
+
+      function fmtVelLabel(v) {
+        const clean = Math.abs(v) < 0.05 ? 0 : Math.round(v * 10) / 10;
+        return clean < 0 ? `-${Math.abs(clean)} m/s` : `${clean} m/s`;
+      }
+
+      /* ======================================================================
+         6. NAVEGACIÓN DE PANTALLAS Y CÓMIC
+         ====================================================================== */
+      function showScreen(name) {
+        state.screen = name;
+        dom.titleScreen.classList.toggle('hidden', name !== 'title');
+        dom.comicScreen.classList.toggle('hidden', name !== 'comic');
+        dom.gameScreen.classList.toggle('hidden', name !== 'game');
+        if (name !== 'game') {
+          hideGuide();
+          hideShopCoach();
+          dom.calcFloat.classList.add('hidden');
+          dom.btnToggleCalc.classList.remove('active');
+        } else {
+          handleResize();
+        }
+      }
+
+      function openComic() {
+        state.comicIdx = 0;
+        renderComic();
+        showScreen('comic');
+      }
+
+      function renderComic() {
+        const p = COMIC_PANELS[state.comicIdx];
+        dom.comicArt.innerHTML = p.svg;
+        dom.comicCaption.textContent = p.caption;
+        dom.btnComicNext.textContent = state.comicIdx === COMIC_PANELS.length - 1 ? '¡A Repartir! 🚀' : 'Siguiente →';
+        Array.from(dom.comicDots.children).forEach((d, i) => d.classList.toggle('active', i <= state.comicIdx));
+      }
+
+      function enterStoryAt(dayIndex) {
+        state.save.introSeen = true;
+        persistSave();
+        showScreen('game');
+        loadDay(dayIndex);
+      }
+
+      /* ======================================================================
+         7. CARGA DE DÍA, RUTA DEL DÍA Y AVISOS CONTEXTUALES
+         ====================================================================== */
+      function getDay() {
+        return DAYS[state.dayIdx];
+      }
+
+      function ensureDayBuffers(d) {
+        if (!state.consoleBlocks[d.day]) state.consoleBlocks[d.day] = [];
+        if (!state.graphNodes[d.day]) state.graphNodes[d.day] = [{ t: 0, x: 0 }];
+        if (!state.discoveredObs[d.day]) state.discoveredObs[d.day] = new Set();
+        if (!state.crashMarks[d.day]) state.crashMarks[d.day] = [];
+        if (!state.discoveredTargets[d.day]) state.discoveredTargets[d.day] = new Set();
+      }
+
+      function loadDay(idx) {
+        state.dayIdx = idx;
+        const d = getDay();
+        ensureDayBuffers(d);
+        state.hoveredDeliveryIdx = -1;
+
+        const savedSol = state.save.solutions[d.day];
+        if (d.day < 4 || d.emergency) {
+          state.pilotMode = 'console';
+        } else if (savedSol && savedSol.mode) {
+          state.pilotMode = savedSol.mode;
+        }
+
+        // Inicializar gotas de lluvia EXCLUSIVAMENTE en Día 7 (weather === 'storm')
+        state.rain = [];
+        if (d.weather === 'storm') {
+          for (let i = 0; i < 75; i++) {
+            state.rain.push({
+              x: Math.random(),
+              y: Math.random(),
+              len: 11 + Math.random() * 11,
+              spd: 1.2 + Math.random() * 0.7
+            });
+          }
+        }
+
+        hideGuide();
+        hideShopCoach();
+        resetSim();
+        renderDayChrome(d);
+        renderRoutePanel(d);
+        renderConsoleBlocks();
+        updateGraphStatus();
+        handleResize();
+
+        // Orden de avisos / tutoriales al entrar al nivel
+        const triggeredShopCoach = checkAndShowShopCoach();
+        if (triggeredShopCoach) {
+          if (d.day === 4 && !state.save.graphUnlockedSeen) {
+            state.pendingGraphUnlock = true;
+          }
+          return;
+        }
+
+        triggerDayEntryGuides(d);
+      }
+
+      function triggerDayEntryGuides(d) {
+        if (d.day === 1 && !state.save.day1GuideSeen) {
+          state.save.day1GuideSeen = true;
+          persistSave();
+          startGuide('day1', 1);
+        } else if (d.day === 2 && !state.save.day2GuideSeen) {
+          state.save.day2GuideSeen = true;
+          persistSave();
+          startGuide('day2', 1);
+        } else if (d.day === 4 && !state.save.graphUnlockedSeen) {
+          showGraphUnlockNotice();
+        } else if (d.day === 9 && !state.save.day9IntroSeen) {
+          state.save.day9IntroSeen = true;
+          persistSave();
+          showDay9EmergencyNotice();
+        }
+      }
+
+      function renderDayChrome(d) {
+        dom.btnDayPicker.textContent = `Día ${d.day} de ${DAYS.length} ▾`;
+        dom.ticketDayPill.textContent = `DÍA ${d.day}`;
+
+        // Interruptor Consola | Gráfica disponible desde Día 4 hasta Día 8
+        const canGraph = d.day >= 4 && !d.emergency;
+        dom.modeSwitch.classList.toggle('hidden', !canGraph);
+        dom.btnTabConsole.classList.toggle('active', state.pilotMode === 'console');
+        dom.btnTabGraph.classList.toggle('active', state.pilotMode === 'graph');
+
+        dom.consoleBlocksView.classList.toggle('hidden', state.pilotMode !== 'console');
+        dom.graphEditorView.classList.toggle('hidden', state.pilotMode !== 'graph');
+      }
+
+      function setPilotMode(mode) {
+        const d = getDay();
+        if (d.day < 4 || d.emergency || state.sim.status === 'flying') return;
+        SFX.click();
+        state.pilotMode = mode;
+        resetSim();
+        renderDayChrome(d);
+        handleResize();
+
+        if (state.guide.kind === 'graphTut' && state.guide.step === 1 && mode === 'graph') {
+          startGuide('graphTut', 2);
+        }
+      }
+
+      function renderRoutePanel(d) {
+        if (d.emergency) {
+          dom.routeTicketPanel.classList.add('hidden');
+          dom.brokenGpsPanel.classList.remove('hidden');
+          return;
+        }
+
+        dom.routeTicketPanel.classList.remove('hidden');
+        dom.brokenGpsPanel.classList.add('hidden');
+
+        dom.routeList.innerHTML = '';
+        d.deliveries.forEach((del, idx) => {
+          const color = ORDER_COLORS[idx % ORDER_COLORS.length];
+          const done = Boolean(state.sim.delivered[idx] && state.sim.delivered[idx].hit);
+          const card = document.createElement('div');
+          card.className = 'route-card' + (done ? ' delivered' : '');
+          card.style.borderLeftColor = color;
+          card.innerHTML = `
+            <div class="route-left">
+              <span class="order-badge" style="background: ${color};">#${del.num}</span>
+              <div class="route-info">
+                <span class="route-pos">${del.food} ${del.x} m</span>
+                <span class="route-sub">${del.label}</span>
+              </div>
+            </div>
+            <span class="route-time">${done ? '✓ Entregado' : `${del.t} s`}</span>
+          `;
+          card.addEventListener('mouseenter', () => { state.hoveredDeliveryIdx = idx; });
+          card.addEventListener('mouseleave', () => { state.hoveredDeliveryIdx = -1; });
+          dom.routeList.appendChild(card);
+        });
+
+        // Alertas de obstáculos descubiertos
+        const disc = state.discoveredObs[d.day];
+        const visibleObs = d.obstacles.filter((o) => disc.has(o.id));
+        if (visibleObs.length > 0) {
+          dom.routeAlerts.classList.remove('hidden');
+          dom.routeAlerts.innerHTML = visibleObs
+            .map((o) => `<div class="route-alert-card">${o.alertText}</div>`)
+            .join('');
+        } else {
+          dom.routeAlerts.classList.add('hidden');
+          dom.routeAlerts.innerHTML = '';
+        }
+      }
+
+      /* ======================================================================
+         8. BARRITA GUÍA INTERACTIVA + AVISOS (DÍA 1, DÍA 2, DÍA 3, DÍA 5, DÍA 9, TALLER)
+         ====================================================================== */
+      function hideGuide() {
+        state.guide = { kind: null, step: 0 };
+        dom.guideBar.classList.add('hidden');
+        dom.guideOverlay.classList.add('hidden');
+        dom.btnGuideOk.textContent = 'OK →';
+        document.querySelectorAll('.guide-highlight').forEach((el) => el.classList.remove('guide-highlight'));
+      }
+
+      function startGuide(kind, step) {
+        hideGuide();
+        state.guide = { kind, step };
+        renderGuide();
+      }
+
+      function renderGuide() {
+        document.querySelectorAll('.guide-highlight').forEach((el) => el.classList.remove('guide-highlight'));
+        if (state.screen !== 'game' || !state.guide.kind) {
+          dom.guideBar.classList.add('hidden');
+          dom.guideOverlay.classList.add('hidden');
+          return;
+        }
+
+        let target = null;
+        let text = '';
+        let showOk = false;
+
+        if (state.guide.kind === 'day1') {
+          if (state.guide.step === 1) {
+            target = dom.routeTicketPanel;
+            text = 'Mira Ruta del día: entrega #1 en 40 m a los 4 s.';
+            showOk = true;
+          } else if (state.guide.step === 2) {
+            target = dom.btnAddMove;
+            text = 'Toca "Agregar instrucción" para añadir tu primer tramo.';
+          } else if (state.guide.step === 3) {
+            target = dom.blocksZone.querySelector('.cmd-block') || dom.blocksZone;
+            text = 'Pon 4 s y 10 m/s (v = 40 ÷ 4 = 10).';
+          } else if (state.guide.step === 4) {
+            target = dom.btnLaunch;
+            text = '¡Listo! Presiona DESPEGAR para hacer tu primera entrega.';
+          }
+        } else if (state.guide.kind === 'day2') {
+          target = dom.routeTicketPanel;
+          text = 'Ahora tienes 2 entregas: agrega una instrucción para cada tramo del recorrido.';
+          showOk = true;
+        } else if (state.guide.kind === 'graphTut') {
+          if (state.guide.step === 1) {
+            target = dom.btnTabGraph;
+            text = 'Toca "Gráfica" para probar el nuevo modo visual.';
+          } else if (state.guide.step === 2) {
+            target = dom.graphCanvasBox;
+            text = 'Instrucciones: Toca el punto resaltado (4 s, 40 m). Indica en qué posición estará el dron en ese segundo.';
+          } else if (state.guide.step === 3) {
+            target = dom.graphCanvasBox;
+            text = 'Nota: A mayor inclinación (pendiente), mayor velocidad · Línea horizontal = reposo · Pendiente negativa = reversa.';
+            showOk = true;
+            dom.btnGuideOk.textContent = '¡Listo, a jugar!';
+          }
+        } else if (state.guide.kind === 'day5Alert') {
+          target = dom.routeAlerts;
+          text = '¡Obstáculo registrado en Ruta del día! Toma en cuenta el horario de Firulais para evitarlo.';
+          showOk = true;
+        }
+
+        if (!target) {
+          dom.guideBar.classList.add('hidden');
+          dom.guideOverlay.classList.add('hidden');
+          return;
+        }
+
+        target.classList.add('guide-highlight');
+        dom.guideText.textContent = text;
+        dom.btnGuideOk.classList.toggle('hidden', !showOk);
+        dom.guideBar.classList.remove('hidden');
+        dom.guideOverlay.classList.remove('hidden');
+
+        requestAnimationFrame(() => {
+          const r = target.getBoundingClientRect();
+          const b = dom.guideBar.getBoundingClientRect();
+          const above = r.bottom + b.height + 16 > window.innerHeight && r.top > b.height + 16;
+          const top = above ? r.top - b.height - 10 : r.bottom + 10;
+          const left = clamp(r.left, 10, window.innerWidth - b.width - 10);
+          dom.guideBar.style.top = `${clamp(top, 10, window.innerHeight - b.height - 10)}px`;
+          dom.guideBar.style.left = `${left}px`;
+        });
+      }
+
+      function advanceDay1GuideIfReady() {
+        if (state.guide.kind !== 'day1') return;
+        const blocks = state.consoleBlocks[1] || [];
+        if ((state.guide.step === 1 || state.guide.step === 2) && blocks.some((b) => b.type === 'move')) {
+          startGuide('day1', 3);
+          return;
+        }
+        if (state.guide.step === 3) {
+          const ok = blocks.some(
+            (b) => b.type === 'move' && parseFloat(b.dur) === 4 && parseFloat(b.vel) === 10
+          );
+          if (ok) startGuide('day1', 4);
+        }
+      }
+
+      /* --- Aviso pantalla completa de Taller al alcanzar $60 por primera vez --- */
+      function checkAndShowShopCoach() {
+        if (state.save.shopCoachSeen || state.save.coins < FIRST_SKIN_PRICE) return false;
+        state.save.shopCoachSeen = true;
+        persistSave();
+
+        dom.shopCoachOverlay.classList.remove('hidden');
+        dom.shopCoachArrow.classList.remove('hidden');
+        dom.shopCoachCard.classList.remove('hidden');
+        dom.btnGameShop.classList.add('shop-coach-spotlight');
+
+        requestAnimationFrame(() => {
+          const r = dom.btnGameShop.getBoundingClientRect();
+          dom.shopCoachArrow.style.left = `${r.left + r.width / 2 - 16}px`;
+          dom.shopCoachArrow.style.top = `${r.bottom + 10}px`;
+
+          const cardW = dom.shopCoachCard.offsetWidth || 340;
+          const left = clamp(r.right - cardW, 14, window.innerWidth - cardW - 14);
+          dom.shopCoachCard.style.left = `${left}px`;
+          dom.shopCoachCard.style.top = `${r.bottom + 54}px`;
+        });
+        return true;
+      }
+
+      function hideShopCoach() {
+        dom.shopCoachOverlay.classList.add('hidden');
+        dom.shopCoachArrow.classList.add('hidden');
+        dom.shopCoachCard.classList.add('hidden');
+        dom.btnGameShop.classList.remove('shop-coach-spotlight');
+      }
+
+      function showGraphUnlockNotice() {
+        state.save.graphUnlockedSeen = true;
+        persistSave();
+        dom.noticeBox.className = 'modal-box is-cyan';
+        dom.noticeKicker.textContent = 'NUEVA HERRAMIENTA';
+        dom.noticeKicker.style.color = 'var(--cyan)';
+        dom.noticeTitle.textContent = '¡Nuevo: Modo Gráfica desbloqueado!';
+        dom.noticeBody.textContent =
+          'A partir de hoy puedes alternar entre la Consola Manual y el Modo Gráfica para trazar el movimiento x(t) colocando puntos.';
+        dom.noticeActions.innerHTML = `
+          <button id="ntcStayConsole" class="btn-secondary" type="button">Seguir en Consola</button>
+          <button id="ntcTryGraph" class="btn-primary" type="button">Probar Modo Gráfica</button>
+        `;
+        dom.noticeModal.classList.remove('hidden');
+
+        $('ntcStayConsole').addEventListener('click', () => {
+          SFX.click();
+          dom.noticeModal.classList.add('hidden');
+          startGuide('graphTut', 1);
+        });
+        $('ntcTryGraph').addEventListener('click', () => {
+          SFX.click();
+          dom.noticeModal.classList.add('hidden');
+          setPilotMode('graph');
+          startGuide('graphTut', 2);
+        });
+      }
+
+      function showDay9EmergencyNotice() {
+        dom.noticeBox.className = 'modal-box is-fail';
+        dom.noticeKicker.textContent = 'EMERGENCIA EN RUTA · DÍA 9';
+        dom.noticeKicker.style.color = 'var(--coral)';
+        dom.noticeTitle.textContent = 'Piloto Automático Dañado';
+        dom.noticeBody.textContent =
+          'La empresa ya calculó la ruta segura, pero el monitor del piloto automático se estrelló. Lee cada tramo de la gráfica rota a la izquierda y programa las instrucciones manualmente en la Consola.';
+        dom.noticeActions.innerHTML = `
+          <button id="ntcStart9" class="btn-primary" type="button">Entendido, a programar</button>
+        `;
+        dom.noticeModal.classList.remove('hidden');
+        $('ntcStart9').addEventListener('click', () => {
+          SFX.click();
+          dom.noticeModal.classList.add('hidden');
+        });
+      }
+
+      /* ======================================================================
+         9. CONSOLA CONSTRUCTIVA (TIEMPO → VELOCIDAD → FLECHAS + CANDADO)
+         ====================================================================== */
+      function addBlock(type) {
+        if (state.sim.status === 'flying') return;
+        const d = getDay();
+        state.consoleBlocks[d.day].push({
+          id: blockUid++,
+          type,
+          dur: '',
+          vel: type === 'wait' ? '0' : '',
+          locked: false
+        });
+        SFX.click();
+        if (state.sim.status === 'done') resetSim();
+        renderConsoleBlocks();
+        advanceDay1GuideIfReady();
+      }
+
+      function sanitizeTimeStr(raw) {
+        let s = raw.replace(',', '.').replace(/[^0-9.]/g, '');
+        const parts = s.split('.');
+        if (parts.length > 2) s = parts[0] + '.' + parts.slice(1).join('');
+        return s.slice(0, 5);
+      }
+
+      function sanitizeVelStr(raw) {
+        // Permite signo menos inicial (sin signo "+"), dígitos y un punto decimal
+        let s = raw.replace(',', '.').replace(/[^0-9.\-]/g, '');
+        const neg = s.startsWith('-');
+        s = s.replace(/-/g, '');
+        const parts = s.split('.');
+        if (parts.length > 2) s = parts[0] + '.' + parts.slice(1).join('');
+        return (neg ? '-' : '') + s.slice(0, 5);
+      }
+
+      function syncBlockArrowsUI(rowEl, b, flyingLocked) {
+        const btnLeft = rowEl.querySelector('.btn-dir-left');
+        const btnRight = rowEl.querySelector('.btn-dir-right');
+        if (!btnLeft || !btnRight) return;
+
+        const valStr = b.vel.trim();
+        const num = parseFloat(valStr);
+        const isEmptyOrZero = valStr === '' || valStr === '-' || isNaN(num) || num === 0;
+        const disabled = b.locked || flyingLocked || isEmptyOrZero;
+
+        btnLeft.disabled = disabled;
+        btnRight.disabled = disabled;
+        btnLeft.classList.toggle('active-left', !isEmptyOrZero && num < 0);
+        btnRight.classList.toggle('active-right', !isEmptyOrZero && num > 0);
+
+        const over = !isNaN(num) && Math.abs(num) > MAX_SPEED;
+        rowEl.classList.toggle('is-error', over);
+      }
+
+      function renderConsoleBlocks() {
+        const d = getDay();
+        const blocks = state.consoleBlocks[d.day] || [];
+        const flyingLocked = state.sim.status === 'flying' || state.sim.status === 'settling';
+
+        dom.blocksZone.innerHTML = '';
+        if (blocks.length === 0) {
+          dom.blocksZone.innerHTML =
+            '<div class="blocks-empty">Usa "Agregar instrucción" o "⏸ Esperar" para armar tu secuencia.</div>';
+          if (state.guide.kind === 'day1' && state.guide.step === 3) {
+            startGuide('day1', 2);
+          }
+          return;
+        }
+
+        blocks.forEach((b, idx) => {
+          const isLocked = b.locked;
+          const rowDisabled = isLocked || flyingLocked;
+
+          const row = document.createElement('div');
+          row.className = 'cmd-block' +
+            (b.type === 'wait' ? ' is-wait' : '') +
+            (isLocked ? ' is-locked' : '') +
+            (state.sim.status === 'flying' && state.sim.activeBlockIdx === idx ? ' is-running' : '');
+          row.draggable = !rowDisabled;
+          row.dataset.idx = String(idx);
+
+          if (b.type === 'move') {
+            // Orden exacto: 1) Tiempo (s) → 2) Velocidad (m/s) → 3) Flechas (← / →)
+            row.innerHTML = `
+              <span class="step-handle" title="Arrastra para reordenar">${idx + 1}</span>
+              <label class="neo-input-wrap" title="Tiempo del tramo (s)">
+                <input type="text" inputmode="decimal" class="inp-dur" placeholder="t" value="${b.dur}" ${rowDisabled ? 'disabled' : ''} />
+                <span>s</span>
+              </label>
+              <label class="neo-input-wrap" title="Velocidad con signo (máx 20 m/s)">
+                <input type="text" inputmode="text" class="inp-vel" placeholder="v" value="${b.vel}" ${rowDisabled ? 'disabled' : ''} />
+                <span>m/s</span>
+              </label>
+              <div class="dir-group" aria-label="Sentido del movimiento">
+                <button type="button" class="dir-btn btn-dir-left" title="Izquierda (negativo)">←</button>
+                <button type="button" class="dir-btn btn-dir-right" title="Derecha (positivo)">→</button>
+              </div>
+              <div class="block-tools">
+                <button type="button" class="blk-icon-btn btn-lock ${isLocked ? 'locked-on' : ''}" ${flyingLocked ? 'disabled' : ''} title="${isLocked ? 'Desbloquear instrucción' : 'Bloquear instrucción'}">${isLocked ? '🔒' : '🔓'}</button>
+                <button type="button" class="blk-icon-btn del btn-del" ${rowDisabled ? 'disabled' : ''} title="Eliminar">✕</button>
+              </div>
+            `;
+          } else {
+            // Bloque Esperar: Tiempo (s) + etiqueta fija 0 m/s + candado + borrar
+            row.innerHTML = `
+              <span class="step-handle" title="Arrastra para reordenar">${idx + 1}</span>
+              <label class="neo-input-wrap" title="Tiempo de espera (s)">
+                <input type="text" inputmode="decimal" class="inp-dur" placeholder="t" value="${b.dur}" ${rowDisabled ? 'disabled' : ''} />
+                <span>s</span>
+              </label>
+              <span class="wait-static-tag">⏸ v = 0 m/s</span>
+              <div class="block-tools">
+                <button type="button" class="blk-icon-btn btn-lock ${isLocked ? 'locked-on' : ''}" ${flyingLocked ? 'disabled' : ''} title="${isLocked ? 'Desbloquear instrucción' : 'Bloquear instrucción'}">${isLocked ? '🔒' : '🔓'}</button>
+                <button type="button" class="blk-icon-btn del btn-del" ${rowDisabled ? 'disabled' : ''} title="Eliminar">✕</button>
+              </div>
+            `;
+          }
+
+          syncBlockArrowsUI(row, b, flyingLocked);
+
+          // Input Tiempo
+          const inpDur = row.querySelector('.inp-dur');
+          inpDur.addEventListener('input', (e) => {
+            const clean = sanitizeTimeStr(e.target.value);
+            e.target.value = clean;
+            b.dur = clean;
+            advanceDay1GuideIfReady();
+          });
+
+          // Input Velocidad + sincronización bidireccional con flechas
+          const inpVel = row.querySelector('.inp-vel');
+          if (inpVel) {
+            inpVel.addEventListener('input', (e) => {
+              const clean = sanitizeVelStr(e.target.value);
+              e.target.value = clean;
+              b.vel = clean;
+              syncBlockArrowsUI(row, b, flyingLocked);
+              const num = parseFloat(clean);
+              if (!isNaN(num) && Math.abs(num) > MAX_SPEED) {
+                showToast('🔥 Motor sobrecargado: máximo 20 m/s');
+              }
+              advanceDay1GuideIfReady();
+            });
+
+            row.querySelector('.btn-dir-left').addEventListener('click', () => {
+              if (b.locked || flyingLocked) return;
+              const num = parseFloat(b.vel);
+              if (isNaN(num) || num === 0) return;
+              SFX.click();
+              b.vel = `-${Math.abs(num)}`;
+              inpVel.value = b.vel;
+              syncBlockArrowsUI(row, b, flyingLocked);
+              advanceDay1GuideIfReady();
+            });
+
+            row.querySelector('.btn-dir-right').addEventListener('click', () => {
+              if (b.locked || flyingLocked) return;
+              const num = parseFloat(b.vel);
+              if (isNaN(num) || num === 0) return;
+              SFX.click();
+              b.vel = `${Math.abs(num)}`;
+              inpVel.value = b.vel;
+              syncBlockArrowsUI(row, b, flyingLocked);
+              advanceDay1GuideIfReady();
+            });
+          }
+
+          // Candado
+          row.querySelector('.btn-lock').addEventListener('click', () => {
+            if (flyingLocked) return;
+            b.locked = !b.locked;
+            SFX.lock();
+            renderConsoleBlocks();
+          });
+
+          // Borrar
+          row.querySelector('.btn-del').addEventListener('click', () => {
+            if (b.locked || flyingLocked) return;
+            SFX.click();
+            blocks.splice(idx, 1);
+            renderConsoleBlocks();
+          });
+
+          // Reordenar arrastrando (solo bloques desbloqueados)
+          row.addEventListener('dragstart', (e) => {
+            if (b.locked || flyingLocked) { e.preventDefault(); return; }
+            state.dragIdx = idx;
+            row.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+          });
+          row.addEventListener('dragend', () => {
+            state.dragIdx = null;
+            row.classList.remove('dragging');
+          });
+          row.addEventListener('dragover', (e) => e.preventDefault());
+          row.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (state.dragIdx === null || state.dragIdx === idx || b.locked) return;
+            const moved = blocks.splice(state.dragIdx, 1)[0];
+            blocks.splice(idx, 0, moved);
+            state.dragIdx = null;
+            SFX.click();
+            renderConsoleBlocks();
+          });
+
+          dom.blocksZone.appendChild(row);
+        });
+      
+        if (state.guide.kind === 'day1' && state.guide.step === 3) {
+          if (!blocks.some((b) => b.type === 'move')) {
+            startGuide('day1', 2);
+          } else {
+            renderGuide();
+          }
+        }
+      }
+
+      /* ======================================================================
+         10. CALCULADORA FLOTANTE NEO-RETRO
+         ====================================================================== */
+      function renderCalc() {
+        dom.calcVal.textContent = state.calc.current;
+        const sym = { '+': '+', '-': '−', '*': '×', '/': '÷' }[state.calc.op] || '';
+        dom.calcExpr.textContent = state.calc.prev !== null ? `${state.calc.prev} ${sym}` : '';
+      }
+
+      function pressCalcKey(k) {
+        SFX.click();
+        const c = state.calc;
+        if (k === 'C') {
+          c.current = '0'; c.prev = null; c.op = null; c.resetNext = false;
+        } else if (k === 'B') {
+          if (c.resetNext) { c.current = '0'; c.resetNext = false; }
+          else c.current = c.current.length > 1 ? c.current.slice(0, -1) : '0';
+          if (c.current === '-') c.current = '0';
+        } else if (k === '±') {
+          if (c.current !== '0') {
+            c.current = c.current.startsWith('-') ? c.current.slice(1) : '-' + c.current;
+          }
+        } else if (['+', '-', '*', '/'].includes(k)) {
+          if (c.op && !c.resetNext) computeCalc();
+          c.prev = parseFloat(c.current);
+          c.op = k;
+          c.resetNext = true;
+        } else if (k === '=') {
+          computeCalc();
+        } else if (k === '.') {
+          if (c.resetNext) { c.current = '0.'; c.resetNext = false; }
+          else if (!c.current.includes('.')) c.current += '.';
+        } else {
+          if (c.resetNext || c.current === '0') { c.current = k; c.resetNext = false; }
+          else if (c.current.length < 10) c.current += k;
+        }
+        renderCalc();
+      }
+
+      function computeCalc() {
+        const c = state.calc;
+        if (c.prev === null || !c.op) return;
+        const a = c.prev;
+        const b = parseFloat(c.current);
+        let res = 0;
+        if (c.op === '+') res = a + b;
+        else if (c.op === '-') res = a - b;
+        else if (c.op === '*') res = a * b;
+        else if (c.op === '/') res = b === 0 ? NaN : a / b;
+
+        if (isNaN(res) || !isFinite(res)) {
+          c.current = 'Error';
+        } else {
+          c.current = String(Math.round(res * 10000) / 10000);
+        }
+        c.prev = null;
+        c.op = null;
+        c.resetNext = true;
+      }
+
+      /* ======================================================================
+         11. EDITOR DE MODO GRÁFICA x(t) (EJES ROTULADOS, SIN ZONAS ROJAS)
+         ====================================================================== */
+      function getPlotMetrics(canvas) {
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+        const padL = 58;
+        const padR = 16;
+        const padT = 16;
+        const padB = 38;
+        return {
+          w, h, padL, padR, padT, padB,
+          plotW: Math.max(10, w - padL - padR),
+          plotH: Math.max(10, h - padT - padB)
+        };
+      }
+
+      function pointerToGraphSnap(clientX, clientY) {
+        const d = getDay();
+        const r = dom.graphCanvas.getBoundingClientRect();
+        const m = getPlotMetrics(dom.graphCanvas);
+        const px = clientX - r.left;
+        const py = clientY - r.top;
+
+        if (px < m.padL - 12 || px > m.padL + m.plotW + 12 || py < m.padT - 12 || py > m.padT + m.plotH + 12) {
+          return null;
+        }
+        const rawT = ((px - m.padL) / m.plotW) * d.maxT;
+        const rawX = ((m.padT + m.plotH - py) / m.plotH) * d.maxX;
+        return {
+          t: clamp(Math.round(rawT), 0, d.maxT),
+          x: clamp(Math.round(rawX / 5) * 5, 0, d.maxX)
+        };
+      }
+
+      function handleGraphTap(pt) {
+        if (!pt || state.pilotMode !== 'graph' || state.sim.status === 'flying' || state.sim.status === 'settling') return;
+        const d = getDay();
+        const nodes = state.graphNodes[d.day];
+        const last = nodes[nodes.length - 1];
+
+        if (nodes.length > 1 && pt.t === last.t && pt.x === last.x) {
+          nodes.pop();
+          SFX.click();
+          if (state.sim.status === 'done') resetSim();
+          updateGraphStatus();
+          return;
+        }
+        if (pt.t < last.t) {
+          SFX.warn();
+          showToast('⏳ Tu dron no puede viajar al pasado.');
+          return;
+        }
+        if (pt.t === last.t && pt.x !== last.x) {
+          SFX.warn();
+          showToast('⚡ ¡Sin teletransportación en el mismo segundo!');
+          return;
+        }
+        if (pt.t === last.t && pt.x === last.x) return;
+
+        const v = (pt.x - last.x) / (pt.t - last.t);
+        if (Math.abs(v) > MAX_SPEED + 1e-6) {
+          SFX.warn();
+          showToast('🔥 Motor sobrecargado: máximo 20 m/s.');
+          return;
+        }
+
+        nodes.push({ t: pt.t, x: pt.x });
+        SFX.click();
+        if (state.sim.status === 'done') resetSim();
+        updateGraphStatus();
+        if (state.guide.kind === 'graphTut' && state.guide.step === 2) {
+          startGuide('graphTut', 3);
+        }
+      }
+
+      function updateGraphStatus() {
+        const d = getDay();
+        const nodes = state.graphNodes[d.day] || [{ t: 0, x: 0 }];
+        const last = nodes[nodes.length - 1];
+        dom.graphStatus.textContent = nodes.length === 1
+          ? 'Toca la cuadrícula desde (0 s, 0 m)'
+          : `Último punto: (${last.t} s, ${last.x} m)`;
+        const locked = state.sim.status === 'flying' || state.sim.status === 'settling';
+        dom.btnGraphUndo.disabled = nodes.length <= 1 || locked;
+        dom.btnGraphClear.disabled = nodes.length <= 1 || locked;
+      }
+
+      /* ======================================================================
+         12. PLAN DE VUELO Y SIMULACIÓN CON SUB-PASOS CONTINUOS PRECISOS
+         ====================================================================== */
+      function buildPlan() {
+        const d = getDay();
+        const plan = [];
+
+        if (state.pilotMode === 'graph') {
+          const nodes = state.graphNodes[d.day] || [];
+          if (nodes.length < 2) {
+            SFX.warn();
+            showToast('Traza al menos un tramo en la gráfica.');
+            return null;
+          }
+          for (let i = 1; i < nodes.length; i++) {
+            const a = nodes[i - 1];
+            const b = nodes[i];
+            const v = (b.x - a.x) / (b.t - a.t);
+            plan.push({ t1: a.t, t2: b.t, x1: a.x, x2: b.x, v, blockIdx: i - 1 });
+          }
+        } else {
+          const blocks = state.consoleBlocks[d.day] || [];
+          if (blocks.length === 0) {
+            SFX.warn();
+            showToast('Agrega al menos una instrucción en la Consola.');
+            return null;
+          }
+          let curT = 0;
+          let curX = 0;
+          for (let i = 0; i < blocks.length; i++) {
+            const b = blocks[i];
+            const dur = parseFloat(b.dur);
+            if (isNaN(dur) || dur <= 0) {
+              SFX.warn();
+              showToast(`Escribe un tiempo válido en el paso ${i + 1}.`);
+              return null;
+            }
+            let v = 0;
+            if (b.type === 'move') {
+              const vel = parseFloat(b.vel);
+              if (isNaN(vel)) {
+                SFX.warn();
+                showToast(`Escribe una velocidad válida en el paso ${i + 1}.`);
+                return null;
+              }
+              if (Math.abs(vel) > MAX_SPEED + 1e-6) {
+                SFX.warn();
+                showToast('🔥 Motor sobrecargado: máximo 20 m/s.');
+                return null;
+              }
+              v = vel;
+            }
+            const nextT = curT + dur;
+            const nextX = curX + v * dur;
+            plan.push({ t1: curT, t2: nextT, x1: curX, x2: nextX, v, blockIdx: i });
+            curT = nextT;
+            curX = nextX;
+          }
+        }
+
+        const lastDeliveryT = Math.max(...d.deliveries.map((x) => x.t));
+        const tail = plan[plan.length - 1];
+        if (tail.t2 < lastDeliveryT) {
+          plan.push({
+            t1: tail.t2,
+            t2: lastDeliveryT,
+            x1: tail.x2,
+            x2: tail.x2,
+            v: 0,
+            blockIdx: -1
+          });
+        }
+        return { plan, endT: lastDeliveryT };
+      }
+
+      function samplePlan(plan, t) {
+        for (let i = 0; i < plan.length; i++) {
+          const s = plan[i];
+          if (t <= s.t2 + 1e-9 || i === plan.length - 1) {
+            const lt = clamp(t - s.t1, 0, s.t2 - s.t1);
+            return { x: s.x1 + s.v * lt, v: s.v, blockIdx: s.blockIdx };
+          }
+        }
+        const last = plan[plan.length - 1];
+        return { x: last.x2, v: 0, blockIdx: -1 };
+      }
+
+      function solveBandCollision(ta, tb, r0, slope, half) {
+        if (ta > tb) return null;
+        const eps = 1e-9;
+        if (Math.abs(slope) < eps) {
+          return Math.abs(r0) <= half + eps ? ta : null;
+        }
+        let u1 = (-half - r0) / slope;
+        let u2 = (half - r0) / slope;
+        if (u1 > u2) [u1, u2] = [u2, u1];
+        const dur = tb - ta;
+        const s = Math.max(0, u1);
+        const e = Math.min(dur, u2);
+        return s <= e + eps ? ta + s : null;
+      }
+
+      function findEarliestCollision(plan, obstacles, endT) {
+        let best = null;
+        for (const seg of plan) {
+          const segEnd = Math.min(seg.t2, endT);
+          if (seg.t1 > segEnd) continue;
+          for (const ob of obstacles) {
+            // Pequeño margen interior de 0.05 s en los bordes para evitar falsos positivos exactos
+            const ta = Math.max(seg.t1, ob.t1 + 0.05);
+            const tb = Math.min(segEnd, ob.t2 - 0.05);
+            if (ta > tb + 1e-9) continue;
+
+            const droneTa = seg.x1 + seg.v * (ta - seg.t1);
+            let tHit = null;
+            if (ob.type === 'pigeons') {
+              const vp = (ob.x2 - ob.x1) / (ob.t2 - ob.t1);
+              const pigTa = ob.x1 + vp * (ta - ob.t1);
+              tHit = solveBandCollision(ta, tb, droneTa - pigTa, seg.v - vp, ob.halfX);
+            } else {
+              tHit = solveBandCollision(ta, tb, droneTa - ob.x, seg.v, ob.halfX);
+            }
+            if (tHit !== null && (!best || tHit < best.tHit)) {
+              best = { tHit, xHit: seg.x1 + seg.v * (tHit - seg.t1), obs: ob };
+            }
+          }
+        }
+        return best;
+      }
+
+      function recordCorrectGraphDeliveries() {
+        if (state.pilotMode !== 'graph') return;
+        const d = getDay();
+        const nodes = state.graphNodes[d.day] || [];
+        d.deliveries.forEach((del, idx) => {
+          const placedExact = nodes.some((n) => n.t === del.t && n.x === del.x);
+          const hitInFlight = Boolean(state.sim.delivered[idx] && state.sim.delivered[idx].hit);
+          if (placedExact || hitInFlight) {
+            state.discoveredTargets[d.day].add(idx);
+          }
+        });
+      }
+
+      function resetSim() {
+        state.sim = {
+          status: 'idle',
+          t: 0,
+          x: 0,
+          v: 0,
+          endT: 10,
+          activeBlockIdx: -1,
+          plan: [],
+          trace: [{ t: 0, x: 0 }],
+          drops: [],
+          delivered: {},
+          popups: [],
+          collision: null,
+          collided: false,
+          settleTimer: 0
+        };
+        state.particles = [];
+        state.trail = [];
+        dom.resultModal.classList.add('hidden');
+        updateRecTimer();
+        updateLaunchButtons();
+        renderRoutePanel(getDay());
+        renderConsoleBlocks();
+        updateGraphStatus();
+      }
+
+      function startFlight() {
+        SFX.init();
+        const built = buildPlan();
+        if (!built) return;
+
+        hideGuide();
+        const d = getDay();
+        resetSim();
+
+        state.sim.status = 'flying';
+        state.sim.plan = built.plan;
+        state.sim.endT = built.endT;
+        state.sim.collision = findEarliestCollision(built.plan, d.obstacles, built.endT);
+        state.sim.v = built.plan[0].v;
+
+        SFX.takeoff();
+        updateRecTimer();
+        updateLaunchButtons();
+        renderConsoleBlocks();
+        updateGraphStatus();
+      }
+
+      function updateLaunchButtons() {
+        const busy = state.sim.status === 'flying' || state.sim.status === 'settling';
+        dom.btnLaunch.classList.toggle('hidden', busy);
+        dom.btnStop.classList.toggle('hidden', !busy);
+        dom.btnAddMove.disabled = busy;
+        dom.btnAddWait.disabled = busy;
+        dom.btnClearUnlocked.disabled = busy;
+      }
+
+      function updateRecTimer() {
+        const t = state.sim.t;
+        const formatted = t < 10 ? `0${t.toFixed(1)} s` : `${t.toFixed(1)} s`;
+        dom.recValue.textContent = formatted;
+        dom.recTimer.classList.toggle('recording', state.sim.status === 'flying');
+      }
+
+      function spawnBurst(px, py, kind) {
+        const count = kind === 'win' ? 24 : kind === 'pigeons' ? 20 : 15;
+        const palettes = {
+          win: ['#34D399', '#FACC15', '#22D3EE', '#F43F5E'],
+          splat: ['#F59E0B', '#FB7185', '#D97706'],
+          dog: ['#F59E0B', '#B45309', '#EF4444'],
+          fire: ['#FF5A36', '#FACC15', '#EF4444'],
+          lightning: ['#FEF08A', '#38BDF8', '#FFFFFF'],
+          pigeons: ['#F8FAFC', '#CBD5E1', '#94A3B8']
+        };
+        const cols = palettes[kind] || palettes.splat;
+        for (let i = 0; i < count; i++) {
+          const a = kind === 'win' ? -Math.PI * Math.random() : Math.random() * Math.PI * 2;
+          const spd = 65 + Math.random() * 135;
+          state.particles.push({
+            x: px, y: py,
+            vx: Math.cos(a) * spd,
+            vy: Math.sin(a) * spd - 35,
+            color: cols[i % cols.length],
+            size: kind === 'pigeons' ? 6 : 4 + Math.random() * 3,
+            life: 1,
+            kind
+          });
+        }
+      }
+
+      function spawnTrail(px, py) {
+        const skin = state.save.equippedSkin;
+        let col = 'rgba(34, 211, 238, 0.65)';
+        if (skin === 'sombrero') col = ['#10B981', '#FFFFFF', '#EF4444'][Math.floor(performance.now() / 65) % 3];
+        else if (skin === 'cyber') col = '#E879F9';
+        else if (skin === 'gold') col = '#FACC15';
+        state.trail.push({ x: px, y: py + (Math.random() - 0.5) * 5, size: 3.4, color: col, life: 0.48 });
+      }
+
+      function updateSim(dtReal) {
+        const d = getDay();
+
+        // Nubes y lluvia (solo Día 7)
+        state.clouds.forEach((c) => {
+          c.x += c.spd * dtReal;
+          if (c.x > 1.15) c.x = -0.15;
+        });
+        state.rain.forEach((r) => {
+          r.y += r.spd * dtReal;
+          r.x -= r.spd * 0.16 * dtReal;
+          if (r.y > 1) { r.y = -0.05; r.x = Math.random(); }
+          if (r.x < 0) r.x = 1;
+        });
+
+        // Partículas, estela y popups
+        for (let i = state.particles.length - 1; i >= 0; i--) {
+          const p = state.particles[i];
+          p.x += p.vx * dtReal;
+          p.y += p.vy * dtReal;
+          p.vy += (p.kind === 'pigeons' ? 65 : 260) * dtReal;
+          p.life -= dtReal * 0.95;
+          if (p.life <= 0) state.particles.splice(i, 1);
+        }
+        for (let i = state.trail.length - 1; i >= 0; i--) {
+          state.trail[i].life -= dtReal * 1.65;
+          if (state.trail[i].life <= 0) state.trail.splice(i, 1);
+        }
+        for (let i = state.sim.popups.length - 1; i >= 0; i--) {
+          const pop = state.sim.popups[i];
+          pop.y -= 26 * dtReal;
+          pop.life -= dtReal * 0.72;
+          if (pop.life <= 0) state.sim.popups.splice(i, 1);
+        }
+
+        const sw = dom.streetCanvas.clientWidth || 720;
+        const sh = dom.streetCanvas.clientHeight || 230;
+
+        // Caída parabólica / gravitacional de paquetes
+        state.sim.drops.forEach((dr) => {
+          if (dr.settled) return;
+          dr.x += dr.vx * dtReal;
+          dr.vy += 2.35 * dtReal;
+          dr.y += dr.vy * dtReal;
+          if (dr.y >= dr.targetY) {
+            dr.y = dr.targetY;
+            dr.settled = true;
+            const px = metersToStreetPx(dr.x, d.maxX, sw);
+            const py = dr.y * sh;
+            if (dr.hit) {
+              SFX.deliver();
+              spawnBurst(px, py - 8, 'win');
+            } else {
+              SFX.splat();
+              spawnBurst(px, py, 'splat');
+            }
+          }
+        });
+
+        // Sub-pasos continuos durante el vuelo
+        if (state.sim.status === 'flying') {
+          const totalDtSim = dtReal * state.simSpeed;
+          const subSteps = 4;
+          const stepDt = totalDtSim / subSteps;
+
+          for (let sIdx = 0; sIdx < subSteps; sIdx++) {
+            const nextT = Math.min(state.sim.endT, state.sim.t + stepDt);
+
+            // Colisión exacta
+            if (state.sim.collision && nextT >= state.sim.collision.tHit) {
+              const col = state.sim.collision;
+              state.sim.t = col.tHit;
+              state.sim.x = col.xHit;
+              state.sim.v = 0;
+              state.sim.collided = true;
+              state.sim.trace.push({ t: col.tHit, x: col.xHit });
+              state.sim.status = 'settling';
+              state.sim.settleTimer = 1.05;
+
+              // Descubrir obstáculo en Ruta del día + marca ✕ en Modo Gráfica
+              state.discoveredObs[d.day].add(col.obs.id);
+              state.crashMarks[d.day].push({ t: col.tHit, x: col.xHit });
+              renderRoutePanel(d);
+
+              const px = metersToStreetPx(col.xHit, d.maxX, sw);
+              const py = sh * 0.27;
+              state.sim.popups.push({
+                x: px, y: py - 24,
+                text: `${col.tHit.toFixed(1)} s 💥`,
+                color: '#FB7185',
+                life: 1.2
+              });
+
+              if (col.obs.type === 'dog') { SFX.bark(); spawnBurst(px, py, 'dog'); }
+              else if (col.obs.type === 'fire') { SFX.fire(); spawnBurst(px, py, 'fire'); }
+              else if (col.obs.type === 'lightning') { SFX.bolt(); spawnBurst(px, py, 'lightning'); }
+              else { SFX.pigeons(); spawnBurst(px, py, 'pigeons'); }
+
+              updateRecTimer();
+              updateLaunchButtons();
+              return;
+            }
+
+            state.sim.t = nextT;
+            const smp = samplePlan(state.sim.plan, nextT);
+            state.sim.x = smp.x;
+            state.sim.v = smp.v;
+
+            if (smp.blockIdx !== state.sim.activeBlockIdx) {
+              state.sim.activeBlockIdx = smp.blockIdx;
+              if (state.pilotMode === 'console') renderConsoleBlocks();
+            }
+
+            // Entregas en su segundo exacto
+            d.deliveries.forEach((del, i) => {
+              if (!state.sim.delivered[i] && nextT >= del.t - 1e-6) {
+                const exact = samplePlan(state.sim.plan, del.t);
+                const hit = Math.abs(exact.x - del.x) <= DELIVERY_TOL;
+                state.sim.delivered[i] = {
+                  hit,
+                  xDropped: exact.x,
+                  targetX: del.x,
+                  targetT: del.t,
+                  food: del.food
+                };
+                state.sim.drops.push({
+                  x: exact.x,
+                  y: 0.27,
+                  vx: hit ? 0 : clamp(exact.v * 0.14, -4, 4),
+                  vy: 0.04,
+                  targetY: hit ? 0.62 : 0.80,
+                  food: del.food,
+                  hit,
+                  settled: false
+                });
+                const px = metersToStreetPx(exact.x, d.maxX, sw);
+                state.sim.popups.push({
+                  x: px,
+                  y: sh * 0.27 - 24,
+                  text: hit ? `${del.t.toFixed(1)} s ✓` : `${del.t.toFixed(1)} s ✕`,
+                  color: hit ? '#34D399' : '#FB7185',
+                  life: 1.25
+                });
+                renderRoutePanel(d);
+              }
+            });
+
+            if (nextT >= state.sim.endT - 1e-6) {
+              state.sim.t = state.sim.endT;
+              state.sim.trace.push({ t: state.sim.t, x: state.sim.x });
+              state.sim.status = 'settling';
+              state.sim.settleTimer = 0.88;
+              updateLaunchButtons();
+              break;
+            }
+          }
+
+          state.sim.trace.push({ t: state.sim.t, x: state.sim.x });
+          if (Math.abs(state.sim.v) > 0.2 || state.save.equippedSkin === 'gold') {
+            spawnTrail(metersToStreetPx(state.sim.x, d.maxX, sw), sh * 0.27);
+          }
+          updateRecTimer();
+        } else if (state.sim.status === 'settling') {
+          state.sim.settleTimer -= dtReal;
+          if (state.sim.settleTimer <= 0) {
+            state.sim.status = 'done';
+            updateRecTimer();
+            updateLaunchButtons();
+            renderConsoleBlocks();
+            updateGraphStatus();
+            showResultModal();
+          }
+        }
+      }
+
+      /* ======================================================================
+         13. RESULTADOS, RESEÑAS Y TALLER DE SKINS
+         ====================================================================== */
+      function showResultModal() {
+        const d = getDay();
+        const total = d.deliveries.length;
+        let hits = 0;
+        let firstMiss = null;
+
+        d.deliveries.forEach((del, i) => {
+          const r = state.sim.delivered[i];
+          if (r && r.hit) hits++;
+          else if (!firstMiss && r) firstMiss = r;
+        });
+
+        const won = !state.sim.collided && hits === total;
+
+        dom.resultBox.className = 'modal-box' + (won ? '' : ' is-fail');
+        dom.resStars.classList.remove('pop');
+        void dom.resStars.offsetWidth;
+        dom.resStars.classList.add('pop');
+
+        if (won) {
+          SFX.win();
+          const already = (state.save.stars[d.day] || 0) >= 5;
+          const earned = already ? 10 : d.reward;
+          state.save.stars[d.day] = 5;
+          state.save.coins += earned;
+          // Guardar la última solución ganadora de este día
+          state.save.solutions[d.day] = {
+            mode: state.pilotMode,
+            blocks: (state.consoleBlocks[d.day] || []).map((b) => ({ ...b })),
+            nodes: (state.graphNodes[d.day] || [{ t: 0, x: 0 }]).map((n) => ({ t: n.t, x: n.x }))
+          };
+          persistSave();
+
+          dom.resKicker.textContent = `DÍA ${d.day} COMPLETADO`;
+          dom.resTitle.textContent = d.day === 9 ? '¡Maestro de Drone Eats!' : '¡Misión Cumplida!';
+          dom.resStars.innerHTML = '★★★★★';
+          dom.resReview.textContent = REVIEWS.win[Math.floor(Math.random() * REVIEWS.win.length)];
+          dom.resDiag.classList.add('hidden');
+          dom.resCoinsRow.classList.remove('hidden');
+          dom.resCoinsVal.textContent = `+$${earned}`;
+          dom.btnNextDay.classList.remove('hidden');
+          dom.btnNextDay.textContent = state.dayIdx < DAYS.length - 1 ? `Siguiente Día →` : '🏠 Inicio';
+        } else {
+          recordCorrectGraphDeliveries();
+          dom.resKicker.textContent = `DÍA ${d.day} · INTENTA DE NUEVO`;
+          dom.resStars.innerHTML = '★<span class="off">★★★★</span>';
+          dom.resCoinsRow.classList.add('hidden');
+          dom.resDiag.classList.remove('hidden');
+          dom.btnNextDay.classList.add('hidden');
+
+          if (state.sim.collided) {
+            const col = state.sim.collision;
+            const t = col.obs.type;
+            dom.resTitle.textContent = t === 'dog' ? '¡Firulais atrapó tu dron!'
+              : t === 'fire' ? '¡Dron chamuscado!'
+              : t === 'lightning' ? '¡Impacto de rayo!'
+              : '¡Choque con palomas!';
+            const pool = REVIEWS[t] || REVIEWS.miss;
+            dom.resReview.textContent = pool[Math.floor(Math.random() * pool.length)];
+            dom.resDiag.textContent = `Choque en ${Math.round(col.xHit)} m a los ${col.tHit.toFixed(1)} s · Alerta anotada en Ruta del día.`;
+          } else if (firstMiss) {
+            dom.resTitle.textContent = '¡Entrega Fallida!';
+            dom.resReview.textContent = REVIEWS.miss[Math.floor(Math.random() * REVIEWS.miss.length)];
+            dom.resDiag.textContent = `A los ${firstMiss.targetT} s estabas en ${Math.round(firstMiss.xDropped)} m (el cliente estaba en ${firstMiss.targetX} m).`;
+          }
+        }
+
+        dom.resultModal.classList.remove('hidden');
+      }
+
+      function openDaysModal() {
+        dom.daysGrid.innerHTML = DAYS.map((d, i) => {
+          const st = state.save.stars[d.day] || 0;
+          return `
+            <button type="button" class="day-card ${i === state.dayIdx ? 'current' : ''}" data-idx="${i}">
+              <div class="day-card-top">
+                <span class="day-card-num">Día ${d.day}</span>
+                <span class="day-card-stars">${st > 0 ? '★'.repeat(st) : '○○○○○'}</span>
+              </div>
+              <span class="day-card-name">${d.name}</span>
+            </button>
+          `;
+        }).join('');
+
+        dom.daysGrid.querySelectorAll('.day-card').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            SFX.click();
+            dom.daysModal.classList.add('hidden');
+            loadDay(Number(btn.dataset.idx));
+          });
+        });
+        dom.daysModal.classList.remove('hidden');
+      }
+
+      function openShopModal() {
+        refreshTitleAndWallet();
+        dom.shopList.innerHTML = SKINS.map((s) => {
+          const owned = state.save.ownedSkins.includes(s.id);
+          const eq = state.save.equippedSkin === s.id;
+          const canBuy = state.save.coins >= s.price;
+          let btn = '';
+          if (eq) btn = `<button type="button" class="skin-btn active" disabled>Equipado ✓</button>`;
+          else if (owned) btn = `<button type="button" class="skin-btn equip" data-eq="${s.id}">Equipar</button>`;
+          else btn = `<button type="button" class="skin-btn buy" data-buy="${s.id}" ${canBuy ? '' : 'disabled'}>Comprar $${s.price}</button>`;
+
+          return `
+            <div class="skin-row ${eq ? 'equipped' : ''}">
+              <div class="skin-left">
+                <div class="skin-icon">${s.icon}</div>
+                <div>
+                  <div class="skin-name">${s.name}</div>
+                  <div class="skin-desc">${s.desc}</div>
+                </div>
+              </div>
+              ${btn}
+            </div>
+          `;
+        }).join('');
+
+        dom.shopList.querySelectorAll('[data-buy]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const s = SKINS.find((x) => x.id === btn.dataset.buy);
+            if (!s || state.save.coins < s.price) return;
+            state.save.coins -= s.price;
+            state.save.ownedSkins.push(s.id);
+            state.save.equippedSkin = s.id;
+            persistSave();
+            SFX.win();
+            openShopModal();
+          });
+        });
+
+        dom.shopList.querySelectorAll('[data-eq]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            state.save.equippedSkin = btn.dataset.eq;
+            persistSave();
+            SFX.click();
+            openShopModal();
+          });
+        });
+
+        dom.shopModal.classList.remove('hidden');
+      }
+
+      /* ======================================================================
+         14. RENDERIZADO CANVAS 1: ESCENARIO URBANO 2D (FUSIÓN EXACTA)
+         ====================================================================== */
+      function metersToStreetPx(m, maxX, w) {
+        const padL = w < 520 ? 28 : 44;
+        const padR = w < 520 ? 28 : 44;
+        return padL + (m / maxX) * (w - padL - padR);
+      }
+
+      function drawStreetCanvas() {
+        const w = dom.streetCanvas.clientWidth;
+        const h = dom.streetCanvas.clientHeight;
+        if (w <= 0 || h <= 0) return;
+
+        const ctx = streetCtx;
+        const d = getDay();
+        const isStorm = d.weather === 'storm';
+        const xPx = (m) => metersToStreetPx(m, d.maxX, w);
+        const sideY = h * 0.80;
+        const droneY = h * 0.25;
+
+        // 1. Cielo luminoso con degradado amarillo hacia el horizonte (tormenta SOLO en Día 7)
+        const sky = ctx.createLinearGradient(0, 0, 0, sideY);
+        if (isStorm) {
+          sky.addColorStop(0, '#1E293B');
+          sky.addColorStop(0.6, '#334155');
+          sky.addColorStop(1, '#475569');
+        } else {
+          sky.addColorStop(0, '#1D4E89');    // Azul cielo profundo arriba (resalta el dron)
+          sky.addColorStop(0.62, '#3B82C4'); // Azul claro diurno en la zona media
+          sky.addColorStop(1, '#F6C97E');    // Degradado cálido suave en el horizonte
+        }
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, w, h);
+
+        // Sol cálido en días despejados
+        if (!isStorm) {
+          const sunX = w * 0.68;
+          const sunY = h * 0.15;
+          const sunGlow = ctx.createRadialGradient(sunX, sunY, 8, sunX, sunY, 44);
+          sunGlow.addColorStop(0, 'rgba(254, 240, 138, 0.95)');
+          sunGlow.addColorStop(1, 'rgba(254, 240, 138, 0)');
+          ctx.fillStyle = sunGlow;
+          ctx.beginPath();
+          ctx.arc(sunX, sunY, 44, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#FDE047';
+          ctx.beginPath();
+          ctx.arc(sunX, sunY, 17, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Nubes suaves
+        ctx.fillStyle = isStorm ? 'rgba(51, 65, 85, 0.82)' : 'rgba(255, 255, 255, 0.76)';
+        state.clouds.forEach((c) => {
+          const cx = c.x * w;
+          const cy = c.y * h;
+          const r = 16 * c.s;
+          ctx.beginPath();
+          ctx.arc(cx, cy, r, 0, Math.PI * 2);
+          ctx.arc(cx + r * 0.9, cy - 5, r * 1.15, 0, Math.PI * 2);
+          ctx.arc(cx + r * 1.9, cy, r * 0.88, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        // 2. Edificios rectangulares minimalistas con techo plano y cornisa (NO redondeados)
+        const bldW = Math.max(40, Math.min(62, (w / d.maxX) * 7.8));
+        d.buildings.forEach((b) => {
+          const cx = xPx(b.x);
+          const bh = sideY * b.h;
+          const bx = cx - bldW / 2;
+          const by = sideY - bh;
+
+          // Verificar si el usuario tiene el cursor sobre una entrega en este edificio
+          const isHighlighted = state.hoveredDeliveryIdx >= 0 &&
+            d.deliveries[state.hoveredDeliveryIdx] &&
+            d.deliveries[state.hoveredDeliveryIdx].x === b.x;
+
+          if (isHighlighted) {
+            ctx.save();
+            ctx.shadowColor = ORDER_COLORS[state.hoveredDeliveryIdx % ORDER_COLORS.length];
+            ctx.shadowBlur = 18;
+            ctx.fillStyle = b.color;
+            ctx.fillRect(bx, by, bldW, bh);
+            ctx.restore();
+          }
+
+          // Cuerpo rectangular limpio
+          ctx.fillStyle = b.color;
+          ctx.fillRect(bx, by, bldW, bh);
+
+          // Cornisa / alero superior rectangular
+          ctx.fillStyle = b.roof;
+          ctx.fillRect(bx - 3, by - 5, bldW + 6, 6);
+
+          // Ventanas rectangulares limpias
+          ctx.fillStyle = isStorm ? 'rgba(253, 224, 71, 0.58)' : 'rgba(224, 242, 254, 0.62)';
+          const winW = Math.max(7, bldW * 0.21);
+          const winH = 10;
+          const col1 = bx + bldW * 0.18;
+          const col2 = bx + bldW * 0.61;
+          ctx.fillRect(col1, by + 12, winW, winH);
+          ctx.fillRect(col2, by + 12, winW, winH);
+          ctx.fillRect(col1, sideY - 22, winW, winH);
+          ctx.fillRect(col2, sideY - 22, winW, winH);
+        });
+
+        // 3. Banqueta y regla graduada en metros (0 m a 100 m)
+        ctx.fillStyle = '#1E293B';
+        ctx.fillRect(0, sideY, w, h - sideY);
+        ctx.strokeStyle = '#64748B';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, sideY);
+        ctx.lineTo(w, sideY);
+        ctx.stroke();
+
+        ctx.font = '600 12.5px Oswald, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        for (let m = 0; m <= d.maxX; m += 10) {
+          const px = xPx(m);
+          ctx.strokeStyle = '#94A3B8';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(px, sideY);
+          ctx.lineTo(px, sideY + 7);
+          ctx.stroke();
+          ctx.fillStyle = '#CBD5E1';
+          ctx.fillText(`${m}m`, px, sideY + 10);
+        }
+
+        // 4. Clientes minimalistas saliendo desde abertura/balcón integrado a la mitad del edificio
+        const grouped = {};
+        d.deliveries.forEach((del, idx) => {
+          if (!grouped[del.x]) grouped[del.x] = [];
+          grouped[del.x].push({ del, idx });
+        });
+
+        Object.values(grouped).forEach((items) => {
+          const cx = xPx(items[0].del.x);
+          const bld = d.buildings.find((b) => b.x === items[0].del.x);
+          const bh = sideY * (bld ? bld.h : 0.46);
+          const midY = sideY - bh * 0.48;
+          const allHit = items.every((it) => state.sim.delivered[it.idx] && state.sim.delivered[it.idx].hit);
+          const firstColor = ORDER_COLORS[items[0].idx % ORDER_COLORS.length];
+
+          // Abertura / ventana abierta en la fachada a la mitad del edificio
+          const openW = Math.min(34, bldW * 0.68);
+          ctx.fillStyle = '#0F172A';
+          ctx.fillRect(cx - openW / 2, midY - 14, openW, 20);
+
+          // Pequeño toldo superior limpio
+          ctx.fillStyle = allHit ? '#10B981' : firstColor;
+          ctx.fillRect(cx - openW / 2 - 2, midY - 18, openW + 4, 4);
+
+          // Cliente minimalista asomándose desde el interior
+          ctx.fillStyle = '#FED7AA';
+          ctx.beginPath();
+          ctx.arc(cx, midY - 6, 5.2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = allHit ? '#34D399' : firstColor;
+          ctx.fillRect(cx - 5.5, midY - 1, 11, 7);
+
+          // Barandal limpio integrado
+          ctx.fillStyle = '#CBD5E1';
+          ctx.fillRect(cx - openW / 2 - 2, midY + 4, openW + 4, 3);
+
+          // Insignias de jerarquía visual (#1 · 🍕 4 s) con código de color exacto
+          items.forEach((it, stackIdx) => {
+            const col = ORDER_COLORS[it.idx % ORDER_COLORS.length];
+            const hit = Boolean(state.sim.delivered[it.idx] && state.sim.delivered[it.idx].hit);
+            const label = hit ? `✓ #${it.del.num} ${it.del.food}` : `#${it.del.num} · ${it.del.food} ${it.del.t}s`;
+            const isHov = state.hoveredDeliveryIdx === it.idx;
+
+            ctx.font = '700 12.5px Oswald, sans-serif';
+            const tw = ctx.measureText(label).width + 14;
+            const bx = clamp(cx - tw / 2, 4, w - tw - 4);
+            const by = midY - 46 - stackIdx * 23;
+
+            ctx.fillStyle = hit ? '#10B981' : col;
+            ctx.beginPath();
+            ctx.roundRect(bx, by, tw, 20, 6);
+            ctx.fill();
+
+            if (isHov) {
+              ctx.strokeStyle = '#FFFFFF';
+              ctx.lineWidth = 2;
+              ctx.stroke();
+            }
+
+            ctx.fillStyle = '#FFFFFF';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(label, bx + tw / 2, by + 10.5);
+          });
+        });
+
+        // 5. Obstáculos (Firulais minimalista, Incendio, Rayo, Palomas)
+        d.obstacles.forEach((ob) => {
+          const active = state.sim.status !== 'idle' && state.sim.t >= ob.t1 && state.sim.t <= ob.t2;
+
+          if (ob.type === 'dog') {
+            const dx = xPx(ob.x);
+            const bld = d.buildings.find((b) => b.x === ob.x);
+            const roofY = sideY - sideY * (bld ? bld.h : 0.46) - 5;
+
+            let jump = 0;
+            if (active) {
+              const ph = ((state.sim.t - ob.t1) * 3.6) % 1;
+              jump = Math.sin(ph * Math.PI) * (roofY - droneY + 5);
+            } else if (state.sim.collided && state.sim.collision.obs.id === ob.id) {
+              jump = roofY - droneY;
+            }
+            const dy = roofY - jump;
+
+            // Diseño minimalista y expresivo de Firulais (estilo DronExpress)
+            ctx.save();
+            ctx.translate(dx, dy);
+            ctx.fillStyle = '#B45309';
+            ctx.beginPath();
+            ctx.roundRect(-13, -10, 26, 13, 6);
+            ctx.fill();
+            ctx.fillStyle = '#D97706';
+            ctx.beginPath();
+            ctx.arc(8, -12, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#78350F';
+            ctx.beginPath();
+            ctx.ellipse(4, -15, 3, 6, 0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#0F172A';
+            ctx.beginPath();
+            ctx.arc(11, -14, 1.8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#FEF3C7';
+            ctx.fillRect(13, -11, 5, 3);
+            ctx.restore();
+
+            if (active) {
+              ctx.font = '700 12.5px Oswald, sans-serif';
+              ctx.fillStyle = '#EF4444';
+              ctx.textAlign = 'center';
+              ctx.fillText('¡GUAU!', dx, dy - 24);
+            }
+          } else if (ob.type === 'fire') {
+            const fx = xPx(ob.x);
+            const bld = d.buildings.find((b) => b.x === ob.x);
+            const roofY = sideY - sideY * (bld ? bld.h : 0.45) - 5;
+
+            if (active) {
+              const flick = Math.sin(performance.now() * 0.032) * 6;
+              const fh = roofY - droneY + 14;
+              ctx.fillStyle = '#F97316';
+              ctx.beginPath();
+              ctx.moveTo(fx - 16, roofY);
+              ctx.quadraticCurveTo(fx - 13, roofY - fh * 0.6, fx + flick * 0.4, roofY - fh);
+              ctx.quadraticCurveTo(fx + 13, roofY - fh * 0.6, fx + 16, roofY);
+              ctx.closePath();
+              ctx.fill();
+
+              ctx.fillStyle = '#FACC15';
+              ctx.beginPath();
+              ctx.moveTo(fx - 8, roofY);
+              ctx.quadraticCurveTo(fx - 6, roofY - fh * 0.45, fx - flick * 0.3, roofY - fh * 0.7);
+              ctx.quadraticCurveTo(fx + 6, roofY - fh * 0.45, fx + 8, roofY);
+              ctx.closePath();
+              ctx.fill();
+            } else {
+              // Humo discreto en la azotea antes de encenderse
+              const drift = (performance.now() * 0.025) % 24;
+              ctx.fillStyle = 'rgba(100, 116, 139, 0.45)';
+              [0, 12].forEach((o) => {
+                const y = roofY - 7 - ((drift + o) % 24);
+                ctx.beginPath();
+                ctx.arc(fx + Math.sin(y * 0.16) * 3.5, y, 5.5, 0, Math.PI * 2);
+                ctx.fill();
+              });
+            }
+          } else if (ob.type === 'lightning') {
+            const lx = xPx(ob.x);
+            const bld = d.buildings.find((b) => b.x === ob.x);
+            const roofY = sideY - sideY * (bld ? bld.h : 0.46) - 5;
+            const now = performance.now();
+
+            // Doble parpadeo rápido dentro de la nube (como trueno previo al rayo)
+            const rumble = (now * 0.0003) % 1;
+            const cloudFlash = !active && (
+              (rumble > 0.72 && rumble < 0.76) ||
+              (rumble > 0.79 && rumble < 0.85)
+            );
+
+            // Nube oscura cargada sobre la azotea
+            ctx.fillStyle = active ? '#0F172A' : (cloudFlash ? '#64748B' : '#1E293B');
+            ctx.beginPath();
+            ctx.arc(lx - 13, 20, 13, 0, Math.PI * 2);
+            ctx.arc(lx + 1, 16, 16, 0, Math.PI * 2);
+            ctx.arc(lx + 15, 20, 12, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (active) {
+              ctx.save();
+              ctx.strokeStyle = '#FDE047';
+              ctx.lineWidth = 4;
+              ctx.shadowColor = '#FDE047';
+              ctx.shadowBlur = 12;
+              ctx.beginPath();
+              ctx.moveTo(lx, 26);
+              ctx.lineTo(lx - 9, roofY * 0.46);
+              ctx.lineTo(lx + 7, roofY * 0.56);
+              ctx.lineTo(lx - 2, roofY);
+              ctx.stroke();
+              ctx.restore();
+            } else {
+              // Chispitas diminutas saltando desde la azotea
+              ctx.save();
+              const sparks = [
+                { ox: -7, vx: -6, vy: -9,  phase: 0.00 },
+                { ox:  1, vx:  4, vy: -11, phase: 0.33 },
+                { ox:  8, vx:  7, vy: -8,  phase: 0.68 }
+              ];
+              sparks.forEach((sp) => {
+                const cycle = ((now * 0.0006) + sp.phase) % 1;
+                if (cycle < 0.3) {
+                  const p = cycle / 0.3;
+                  const sx = lx + sp.ox + sp.vx * p;
+                  const sy = roofY - 1 + sp.vy * p + 12 * p * p;
+                  const alpha = 1 - p;
+
+                  ctx.globalAlpha = alpha;
+                  ctx.fillStyle = p < 0.35 ? '#FFFFFF' : '#FDE047';
+                  ctx.shadowColor = '#FACC15';
+                  ctx.shadowBlur = 5;
+                  ctx.beginPath();
+                  ctx.arc(sx, sy, Math.max(0.6, 1.7 * alpha), 0, Math.PI * 2);
+                  ctx.fill();
+                }
+              });
+              ctx.restore();
+            }
+          } else if (ob.type === 'pigeons') {
+            let px, py;
+            if (state.sim.status === 'idle' || state.sim.t < ob.t1) {
+              // Vuelan alto fuera de peligro antes de t1
+              px = xPx(ob.x1);
+              py = h * 0.25;
+            } else if (state.sim.t <= ob.t2) {
+              const frac = (state.sim.t - ob.t1) / (ob.t2 - ob.t1);
+              px = xPx(ob.x1 + (ob.x2 - ob.x1) * frac);
+              py = droneY;
+            } else {
+              // Vuelven a subir alto después de t2
+              const climb = (state.sim.t - ob.t2) * 48;
+              px = xPx(ob.x2) - climb * 0.35;
+              py = droneY - climb;
+            }
+
+            if (py > -25) {
+              const flap = Math.sin(performance.now() * 0.028) * 6;
+              [[-11, -5], [0, 3], [11, -4]].forEach(([ox, oy]) => {
+                ctx.save();
+                ctx.translate(px + ox, py + oy);
+                ctx.strokeStyle = '#1E293B';
+                ctx.lineWidth = 2.2;
+                ctx.beginPath();
+                ctx.moveTo(-7, flap);
+                ctx.quadraticCurveTo(-2, -5, 0, 0);
+                ctx.quadraticCurveTo(2, -5, 7, flap);
+                ctx.stroke();
+                ctx.restore();
+              });
+            }
+          }
+        });
+
+        // 6. Línea vertical punteada fina proyectada del dron al suelo + punto brillante en la regla
+        const dronePx = clamp(xPx(state.sim.x), 12, w - 12);
+        ctx.save();
+        ctx.strokeStyle = state.sim.status === 'flying'
+          ? 'rgba(34, 211, 238, 0.52)'
+          : 'rgba(34, 211, 238, 0.28)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(dronePx, droneY + 12);
+        ctx.lineTo(dronePx, sideY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Punto brillante deslizándose sobre la regla de metros
+        ctx.fillStyle = '#22D3EE';
+        ctx.shadowColor = '#22D3EE';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(dronePx, sideY, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // 7. Paquetes cayendo o aterrizados
+        state.sim.drops.forEach((dr) => {
+          const px = xPx(dr.x);
+          const py = dr.y * h;
+          ctx.save();
+          ctx.translate(px, py);
+          if (!dr.hit && dr.settled) ctx.scale(1.3, 0.55);
+          ctx.font = '18px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(dr.food, 0, 0);
+          ctx.restore();
+        });
+
+        // 8. Estela y Dron geométrico estilo Calca la Gráfica con LEDs parpadeantes
+        state.trail.forEach((tr) => {
+          ctx.save();
+          ctx.globalAlpha = clamp(tr.life, 0, 1);
+          ctx.fillStyle = tr.color;
+          ctx.beginPath();
+          ctx.arc(tr.x, tr.y, tr.size, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        });
+
+        drawTacticalDrone(ctx, dronePx, droneY, state.sim.v);
+
+        // 9. Popups breves encima del dron al entregar o chocar
+        state.sim.popups.forEach((pop) => {
+          ctx.save();
+          ctx.globalAlpha = clamp(pop.life, 0, 1);
+          ctx.font = '700 13px Oswald, sans-serif';
+          const tw = ctx.measureText(pop.text).width + 14;
+          ctx.fillStyle = 'rgba(13, 20, 32, 0.9)';
+          ctx.strokeStyle = pop.color;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.roundRect(pop.x - tw / 2, pop.y - 11, tw, 22, 6);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = pop.color;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(pop.text, pop.x, pop.y + 0.5);
+          ctx.restore();
+        });
+
+        // 10. Partículas
+        state.particles.forEach((p) => {
+          ctx.save();
+          ctx.globalAlpha = clamp(p.life, 0, 1);
+          ctx.fillStyle = p.color;
+          if (p.kind === 'pigeons') {
+            ctx.beginPath();
+            ctx.ellipse(p.x, p.y, p.size, p.size * 0.4, p.life * 6, 0, Math.PI * 2);
+            ctx.fill();
+          } else {
+            ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+          }
+          ctx.restore();
+        });
+
+        // 11. Lluvia animada exclusivamente en Día 7 (tormenta)
+        if (isStorm) {
+          ctx.strokeStyle = 'rgba(186, 230, 253, 0.48)';
+          ctx.lineWidth = 1.4;
+          state.rain.forEach((r) => {
+            const rx = r.x * w;
+            const ry = r.y * h;
+            ctx.beginPath();
+            ctx.moveTo(rx, ry);
+            ctx.lineTo(rx - 3, ry + r.len);
+            ctx.stroke();
+          });
+        }
+      }
+
+      /* Dron geométrico hexagonal/poligonal estilo Calca la Gráfica + LEDs parpadeantes + 5 skins */
+      function drawTacticalDrone(ctx, x, y, v) {
+        const skin = state.save.equippedSkin;
+        const now = performance.now();
+        const tilt = clamp(v * 0.015, -0.24, 0.24);
+        const bob = Math.sin(now * 0.008) * 2;
+        //const blinkA = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(now * 0.012));
+        //const blinkB = 0.35 + 0.65 * (0.5 + 0.5 * Math.cos(now * 0.012));
+        const rotorSpan = 7 + Math.sin(now * 0.05) * 2;
+
+        ctx.save();
+        ctx.translate(x, y + bob);
+        ctx.rotate(tilt);
+
+        // Paquete colgando si faltan entregas
+        const d = getDay();
+        if (Object.keys(state.sim.delivered).length < d.deliveries.length && !state.sim.collided) {
+          // Dos tirantes grises que cuelgan del chasis
+          ctx.strokeStyle = '#94A3B8';
+          ctx.lineWidth = 1.3;
+          ctx.beginPath();
+          ctx.moveTo(-5, 8);
+          ctx.lineTo(-5, 11);
+          ctx.moveTo(5, 8);
+          ctx.lineTo(5, 11);
+          ctx.stroke();
+
+          // Cajita naranja ligeramente más grande (19x14)
+          ctx.fillStyle = '#F59E0B';
+          ctx.strokeStyle = '#FEF3C7';
+          ctx.lineWidth = 1.3;
+          ctx.beginPath();
+          ctx.roundRect(-10.5, 11, 21, 15, 2.5);
+          ctx.fill();
+          ctx.stroke();
+
+          // Ícono del alimento ligeramente más grande y centrado
+          const nextDel = d.deliveries.find((_, idx) => !state.sim.delivered[idx]);
+          if (nextDel) {
+            ctx.font = '13.5px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(nextDel.food, 0, 19);
+          }
+        }
+
+        // Brillo de propulsores laterales (efecto vibrante de Calca la Gráfica)
+        const thrust = Math.min(1, 0.35 + Math.abs(v) * 0.05);
+        const pulse = 0.85 + Math.sin(now * 0.025) * 0.15;
+        const glowRadius = 11 * thrust * pulse;
+
+        const glowRgb = skin === 'cyber' ? '232, 121, 249'
+          : skin === 'sombrero' ? '34, 197, 94'
+          : skin === 'gold' ? '250, 204, 21'
+          : '56, 189, 248';
+
+        [-16, 16].forEach((rx) => {
+          const g = ctx.createRadialGradient(rx, 8, 1, rx, 10, glowRadius);
+          g.addColorStop(0, `rgba(${glowRgb}, 0.85)`);
+          g.addColorStop(1, `rgba(${glowRgb}, 0)`);
+          ctx.fillStyle = g;
+          ctx.beginPath();
+          ctx.arc(rx, 10, glowRadius, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        // Brazos y hélices
+        ctx.strokeStyle = '#94A3B8';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(-21, 1);
+        ctx.lineTo(21, 1);
+        ctx.stroke();
+
+        ctx.lineWidth = 2.2;
+        ctx.strokeStyle = skin === 'gold' ? '#FACC15'
+          : skin === 'cyber' ? '#E879F9'
+          : skin === 'sombrero' ? '#22C55E'
+          : '#22D3EE';
+        [-17, 17].forEach((rx) => {
+          ctx.beginPath();
+          ctx.moveTo(rx - rotorSpan, -3);
+          ctx.lineTo(rx + rotorSpan, -3);
+          ctx.stroke();
+        });
+
+        // Chasis geométrico hexagonal (misma silueta base para todas las skins)
+        let fill = '#1e293b';
+        let stroke = '#38bdf8';
+        if (skin === 'sombrero') { fill = '#065F46'; stroke = '#22C55E'; }
+        else if (skin === 'cyber') { fill = '#1E1B4B'; stroke = '#E879F9'; }
+        else if (skin === 'googly') { fill = '#0C4A6E'; stroke = '#38BDF8'; }
+        else if (skin === 'gold') { fill = '#CA8A04'; stroke = '#FEF08A'; }
+
+        ctx.fillStyle = fill;
+        ctx.strokeStyle = stroke;
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(-11, -5);
+        ctx.lineTo(11, -5);
+        ctx.lineTo(14, 3);
+        ctx.lineTo(8, 8);
+        ctx.lineTo(-8, 8);
+        ctx.lineTo(-14, 3);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Luces LED parpadeantes alrededor del cuerpo
+        /*
+        ctx.save();
+        ctx.fillStyle = `rgba(239, 68, 68, ${blinkA})`;
+        ctx.beginPath(); ctx.arc(-13, 2, 2.3, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = `rgba(52, 211, 153, ${blinkB})`;
+        ctx.beginPath(); ctx.arc(13, 2, 2.3, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = `rgba(34, 211, 238, ${blinkB})`;
+        ctx.beginPath(); ctx.arc(-7, -4, 1.8, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = `rgba(34, 211, 238, ${blinkA})`;
+        ctx.beginPath(); ctx.arc(7, -4, 1.8, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+        */
+
+        // Detalle por skin sobre la silueta geométrica
+        if (skin === 'googly') {
+          const look = clamp(v * 0.14, -1.7, 1.7);
+          [-5, 5].forEach((ex) => {
+            // Fondo blanco fijo, ligeramente ovalado
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.ellipse(ex, 0.5, 3.8, 4.4, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Pupila oscura ovalada que sigue el movimiento
+            ctx.fillStyle = '#0F172A';
+            ctx.beginPath();
+            ctx.ellipse(ex + look, 0.6, 2.1, 2.6, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Un solo brillito blanco sobre la pupila
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.arc(ex + look + 0.7, -0.8, 0.85, 0, Math.PI * 2);
+            ctx.fill();
+          });
+        } else {
+          // Sensor óptico central
+         ctx.fillStyle = skin === 'sombrero' ? '#4ADE80'
+            : skin === 'cyber' ? '#E879F9'
+            : skin === 'gold' ? '#FEF08A'
+            : (state.sim.status === 'flying' ? '#34D399' : '#22D3EE');
+          ctx.beginPath();
+          ctx.arc(0, 1, 3.2, 0, Math.PI * 2);
+          ctx.fill();
+
+          if (skin === 'sombrero') {
+            ctx.fillStyle = '#F59E0B';
+            ctx.strokeStyle = '#92400E';
+            ctx.lineWidth = 1.3;
+            ctx.beginPath(); ctx.ellipse(0, -7, 15, 3.8, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+            ctx.beginPath(); ctx.arc(0, -8, 6.5, Math.PI, 0); ctx.fill(); ctx.stroke();
+          } else if (skin === 'gold') {
+            ctx.fillStyle = '#FEF08A';
+            ctx.beginPath();
+            ctx.moveTo(-6, -6); ctx.lineTo(-8, -13); ctx.lineTo(-2, -9);
+            ctx.lineTo(0, -15); ctx.lineTo(2, -9); ctx.lineTo(8, -13); ctx.lineTo(6, -6);
+            ctx.closePath();
+            ctx.fill();
+          }
+        }
+
+        ctx.restore();
+      }
+
+      /* ======================================================================
+         15. RENDERIZADO CANVAS 2 Y 3: GRÁFICA x(t) Y MONITOR GPS ROTO (DÍA 9)
+         ====================================================================== */
+      function drawAxesAndGrid(ctx, m, maxT, maxX) {
+        const tPx = (t) => m.padL + (t / maxT) * m.plotW;
+        const xPx = (x) => m.padT + m.plotH - (x / maxX) * m.plotH;
+
+        const tStep = maxT > 14 ? 2 : 1;
+        for (let t = 0; t <= maxT; t += 1) {
+          const px = tPx(t);
+          ctx.strokeStyle = t % 2 === 0 ? 'rgba(56, 189, 248, 0.16)' : 'rgba(56, 189, 248, 0.06)';
+          ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(px, m.padT); ctx.lineTo(px, m.padT + m.plotH); ctx.stroke();
+
+          if (t % tStep === 0 || t === maxT) {
+            ctx.fillStyle = '#94A3B8';
+            ctx.font = '600 12.5px JetBrains Mono, monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.fillText(`${t}`, px, m.padT + m.plotH + 5);
+          }
+        }
+
+        for (let x = 0; x <= maxX; x += 10) {
+          const py = xPx(x);
+          ctx.strokeStyle = x % 20 === 0 ? 'rgba(56, 189, 248, 0.16)' : 'rgba(56, 189, 248, 0.08)';
+          ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(m.padL, py); ctx.lineTo(m.padL + m.plotW, py); ctx.stroke();
+
+          if (x % 20 === 0 || maxX <= 80) {
+            ctx.fillStyle = '#94A3B8';
+            ctx.font = '600 12.5px JetBrains Mono, monospace';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`${x}`, m.padL - 7, py);
+          }
+        }
+
+        // Marco
+        ctx.strokeStyle = '#334866';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(m.padL, m.padT, m.plotW, m.plotH);
+
+        // Ejes obligatorios rotulados con nombre y unidades
+        ctx.fillStyle = '#CBD5E1';
+        ctx.font = '600 12.5px Rubik, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText('Tiempo (s)', m.padL + m.plotW / 2, m.h - 3);
+
+        ctx.save();
+        ctx.translate(12, m.padT + m.plotH / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillText('Posición (m)', 0, 0);
+        ctx.restore();
+
+        return { tPx, xPx };
+      }
+
+      function drawGraphEditorCanvas() {
+        if (state.pilotMode !== 'graph') return;
+        const m = getPlotMetrics(dom.graphCanvas);
+        if (m.w <= 0 || m.h <= 0) return;
+
+        const ctx = graphCtx;
+        const d = getDay();
+        ctx.clearRect(0, 0, m.w, m.h);
+
+        const { tPx, xPx } = drawAxesAndGrid(ctx, m, d.maxT, d.maxX);
+
+        // Únicamente marcas ✕ rojas discretas de choques previos (SIN cajas rojas ni estrellas objetivo)
+        (state.crashMarks[d.day] || []).forEach((mk) => {
+          const mx = tPx(mk.t);
+          const my = xPx(mk.x);
+          ctx.strokeStyle = '#FB7185';
+          ctx.lineWidth = 2.4;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(mx - 5, my - 5); ctx.lineTo(mx + 5, my + 5);
+          ctx.moveTo(mx + 5, my - 5); ctx.lineTo(mx - 5, my + 5);
+          ctx.stroke();
+        });
+
+        // Puntos de entrega correctos ya descubiertos en intentos previos (en naranja)
+        const discTargets = state.discoveredTargets[d.day];
+        if (discTargets && discTargets.size > 0) {
+          d.deliveries.forEach((del, idx) => {
+            if (!discTargets.has(idx)) return;
+            const tx = tPx(del.t);
+            const ty = xPx(del.x);
+
+            ctx.save();
+            // Resplandor naranja suave
+            ctx.fillStyle = 'rgba(249, 115, 22, 0.22)';
+            ctx.beginPath();
+            ctx.arc(tx, ty, 9.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Aro naranja nítido (queda visible incluso al volver a poner el punto encima)
+            ctx.strokeStyle = '#f97316';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(tx, ty, 6.5, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Número de entrega discreto (#1, #2...)
+            ctx.font = '700 10px Oswald, sans-serif';
+            ctx.fillStyle = '#fb923c';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(`#${del.num}`, tx, ty - 10);
+            ctx.restore();
+          });
+        }
+
+        // Poligonal trazada por el alumno
+        const nodes = state.graphNodes[d.day] || [{ t: 0, x: 0 }];
+        for (let i = 1; i < nodes.length; i++) {
+          const a = nodes[i - 1];
+          const b = nodes[i];
+          const v = (b.x - a.x) / (b.t - a.t);
+          const ax = tPx(a.t), ay = xPx(a.x);
+          const bx = tPx(b.t), by = xPx(b.x);
+
+          ctx.strokeStyle = '#34D399';
+          ctx.lineWidth = 2.8;
+          ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
+
+          // Etiqueta discreta de pendiente v
+          const mx = (ax + bx) / 2;
+          const my = (ay + by) / 2;
+          const lbl = fmtVelLabel(v);
+          ctx.font = '600 10px JetBrains Mono, monospace';
+          const tw = ctx.measureText(lbl).width + 8;
+          ctx.fillStyle = 'rgba(13, 20, 32, 0.9)';
+          ctx.strokeStyle = 'rgba(52, 211, 153, 0.55)';
+          ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.roundRect(mx - tw / 2, my - 17, tw, 15, 4); ctx.fill(); ctx.stroke();
+          ctx.fillStyle = '#A7F3D0';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(lbl, mx, my - 9.5);
+        }
+
+        // Previsualización al pasar el cursor
+        if (state.graphHover && state.sim.status !== 'flying') {
+          const hv = state.graphHover;
+          const last = nodes[nodes.length - 1];
+          const hx = tPx(hv.t), hy = xPx(hv.x);
+          const validT = hv.t > last.t;
+          const valid = validT && Math.abs((hv.x - last.x) / (hv.t - last.t)) <= MAX_SPEED + 1e-6;
+
+          ctx.strokeStyle = valid ? 'rgba(34, 211, 238, 0.7)' : 'rgba(251, 113, 133, 0.75)';
+          ctx.lineWidth = 1.8;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath(); ctx.moveTo(tPx(last.t), xPx(last.x)); ctx.lineTo(hx, hy); ctx.stroke();
+          ctx.setLineDash([]);
+
+          ctx.fillStyle = valid ? '#22D3EE' : '#FB7185';
+          ctx.beginPath(); ctx.arc(hx, hy, 4.5, 0, Math.PI * 2); ctx.fill();
+
+          const tip = `(${hv.t} s, ${hv.x} m)`;
+          ctx.font = '600 12.5px JetBrains Mono, monospace';
+          const tw = ctx.measureText(tip).width + 10;
+          const tx = clamp(hx - tw / 2, m.padL + 2, m.padL + m.plotW - tw - 2);
+          const ty = hy > m.padT + 26 ? hy - 25 : hy + 10;
+          ctx.fillStyle = '#0F172A';
+          ctx.strokeStyle = valid ? '#22D3EE' : '#FB7185';
+          ctx.lineWidth = 1.2;
+          ctx.beginPath(); ctx.roundRect(tx, ty, tw, 19, 5); ctx.fill(); ctx.stroke();
+          ctx.fillStyle = '#F8FAFC';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(tip, tx + tw / 2, ty + 10);
+        }
+
+        // Vértices
+        nodes.forEach((pt, idx) => {
+          ctx.fillStyle = idx === 0 ? '#22D3EE' : '#34D399';
+          ctx.strokeStyle = '#070D17';
+          ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.arc(tPx(pt.t), xPx(pt.x), 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        });
+
+        // Línea de escaneo en vivo durante el vuelo
+        if (state.sim.status !== 'idle') {
+          const sx = tPx(state.sim.t);
+          const sy = xPx(state.sim.x);
+          ctx.strokeStyle = 'rgba(34, 211, 238, 0.78)';
+          ctx.lineWidth = 1.6;
+          ctx.beginPath(); ctx.moveTo(sx, m.padT); ctx.lineTo(sx, m.padT + m.plotH); ctx.stroke();
+
+          ctx.fillStyle = state.sim.collided ? '#FB7185' : '#22D3EE';
+          ctx.strokeStyle = '#FFFFFF';
+          ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.arc(sx, sy, 5.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        }
+
+        // Mini-tutorial interactivo sobre la cuadrícula
+        if (state.guide.kind === 'graphTut' && state.guide.step === 2) {
+          // Círculo naranja pulsante señalando dónde hacer clic: (4 s, 40 m)
+          const gx = tPx(4), gy = xPx(40);
+          const pulse = 7 + Math.sin(performance.now() * 0.01) * 3;
+          ctx.save();
+          ctx.strokeStyle = '#f97316';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.arc(gx, gy, pulse, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.fillStyle = '#f97316';
+          ctx.beginPath();
+          ctx.arc(gx, gy, 4.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        } else if (state.guide.kind === 'graphTut' && state.guide.step === 3 && nodes.length >= 2) {
+          // Triángulo punteado explicando Δt (horizontal) y Δx (vertical)
+          const a = nodes[0], b = nodes[1];
+          const ax = tPx(a.t), ay = xPx(a.x);
+          const bx = tPx(b.t), by = xPx(b.x);
+          ctx.save();
+          ctx.setLineDash([4, 4]);
+          ctx.lineWidth = 2;
+
+          // Línea horizontal: Tiempo que pasa (Δt)
+          ctx.strokeStyle = '#38bdf8';
+          ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, ay); ctx.stroke();
+
+          // Línea vertical: Distancia que recorre (Δx)
+          ctx.strokeStyle = '#f97316';
+          ctx.beginPath(); ctx.moveTo(bx, ay); ctx.lineTo(bx, by); ctx.stroke();
+          ctx.setLineDash([]);
+
+          ctx.font = '700 12.5px Rubik, sans-serif';
+          ctx.fillStyle = '#38bdf8';
+          ctx.textAlign = 'center';
+          ctx.fillText(`Tiempo (${b.t - a.t} s)`, (ax + bx) / 2, ay - 6);
+
+          ctx.fillStyle = '#f97316';
+          ctx.textAlign = 'left';
+          ctx.fillText(`Distancia (${b.x - a.x} m)`, bx + 6, (ay + by) / 2);
+          ctx.restore();
+        }
+      }
+
+      function drawBrokenGpsCanvas() {
+        const d = getDay();
+        if (!d.emergency || !d.gpsRoute) return;
+        const m = getPlotMetrics(dom.brokenGpsCanvas);
+        if (m.w <= 0 || m.h <= 0) return;
+
+        const ctx = brokenCtx;
+        ctx.clearRect(0, 0, m.w, m.h);
+
+        const { tPx, xPx } = drawAxesAndGrid(ctx, m, d.maxT, d.maxX);
+
+        // Ruta segura esperada (cian punteada / sólida clara)
+        ctx.beginPath();
+        d.gpsRoute.forEach((pt, i) => {
+          if (i === 0) ctx.moveTo(tPx(pt.t), xPx(pt.x));
+          else ctx.lineTo(tPx(pt.t), xPx(pt.x));
+        });
+        ctx.strokeStyle = '#22D3EE';
+        ctx.lineWidth = 2.8;
+        ctx.stroke();
+
+        // Vértices rotulados (t, x) para lectura limpia
+        d.gpsRoute.forEach((pt) => {
+          const px = tPx(pt.t);
+          const py = xPx(pt.x);
+          ctx.fillStyle = '#22D3EE';
+          ctx.strokeStyle = '#070C15';
+          ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.arc(px, py, 4.8, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+          const lbl = `(${pt.t},${pt.x})`;
+          ctx.font = '700 10px JetBrains Mono, monospace';
+          const tw = ctx.measureText(lbl).width + 6;
+          const lx = clamp(px - tw / 2, m.padL + 2, m.padL + m.plotW - tw - 2);
+          const ly = py > m.padT + 22 ? py - 20 : py + 8;
+          ctx.fillStyle = 'rgba(7, 12, 21, 0.9)';
+          ctx.fillRect(lx, ly, tw, 14);
+          ctx.fillStyle = '#E0F2FE';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(lbl, lx + tw / 2, ly + 7.5);
+        });
+
+        // Rastro real del dron en verde menta (o coral si chocó)
+        if (state.sim.status !== 'idle' && state.sim.trace.length > 1) {
+          ctx.beginPath();
+          state.sim.trace.forEach((pt, i) => {
+            if (i === 0) ctx.moveTo(tPx(pt.t), xPx(pt.x));
+            else ctx.lineTo(tPx(pt.t), xPx(pt.x));
+          });
+          ctx.strokeStyle = state.sim.collided ? '#FB7185' : '#34D399';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+
+          const sx = tPx(state.sim.t);
+          const sy = xPx(state.sim.x);
+          ctx.fillStyle = state.sim.collided ? '#FB7185' : '#34D399';
+          ctx.strokeStyle = '#FFFFFF';
+          ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.arc(sx, sy, 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        }
+      }
+
+      /* ======================================================================
+         16. HIDPI RESIZE Y BUCLE PRINCIPAL
+         ====================================================================== */
+      function resizeCanvas(canvas, ctx) {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const r = canvas.getBoundingClientRect();
+        const tw = Math.max(1, Math.round(r.width * dpr));
+        const th = Math.max(1, Math.round(r.height * dpr));
+        if (canvas.width !== tw || canvas.height !== th) {
+          canvas.width = tw;
+          canvas.height = th;
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+      }
+
+      function handleResize() {
+        if (state.screen !== 'game') return;
+        resizeCanvas(dom.streetCanvas, streetCtx);
+        if (state.pilotMode === 'graph') resizeCanvas(dom.graphCanvas, graphCtx);
+        if (getDay().emergency) resizeCanvas(dom.brokenGpsCanvas, brokenCtx);
+        if (state.guide.kind) renderGuide();
+      }
+
+      function loop(now) {
+        const dt = Math.min((now - state.lastTime) / 1000, 0.05);
+        state.lastTime = now;
+
+        if (state.screen === 'game') {
+          updateSim(dt);
+          drawStreetCanvas();
+          drawGraphEditorCanvas();
+          drawBrokenGpsCanvas();
+        }
+        requestAnimationFrame(loop);
+      }
+
+      /* ======================================================================
+         17. EVENTOS DE INTERFAZ Y ARRASTRE DE CALCULADORA
+         ====================================================================== */
+      function bindEvents() {
+        // Inicio
+        dom.btnContinue.addEventListener('click', () => {
+          SFX.init(); SFX.click();
+          let nextIdx = DAYS.findIndex((d) => (state.save.stars[d.day] || 0) < 5);
+          if (nextIdx < 0) nextIdx = 0;
+          enterStoryAt(nextIdx);
+        });
+        dom.btnStory.addEventListener('click', () => {
+          SFX.init(); SFX.click();
+          if (!state.save.introSeen) openComic();
+          else enterStoryAt(0);
+        });
+        dom.btnTitleShop.addEventListener('click', () => { SFX.click(); openShopModal(); });
+        dom.btnResetProgress.addEventListener('click', () => {
+          SFX.click();
+          dom.noticeBox.className = 'modal-box is-fail';
+          dom.noticeKicker.textContent = 'CONFIRMAR';
+          dom.noticeKicker.style.color = 'var(--coral)';
+          dom.noticeTitle.textContent = '¿Reiniciar todo el progreso?';
+          dom.noticeBody.textContent = 'Se borrarán tus estrellas, propinas y skins desbloqueadas.';
+          dom.noticeActions.innerHTML = `
+            <button id="rstCancel" class="btn-secondary" type="button">Cancelar</button>
+            <button id="rstOk" class="btn-stop" type="button" style="padding: 10px 14px; font-size: 1rem;">Sí, reiniciar</button>
+          `;
+          dom.noticeModal.classList.remove('hidden');
+          $('rstCancel').addEventListener('click', () => dom.noticeModal.classList.add('hidden'));
+          $('rstOk').addEventListener('click', () => {
+            localStorage.removeItem(SAVE_KEY);
+            state.save = {
+              coins: 0, ownedSkins: ['classic'], equippedSkin: 'classic', stars: {},
+              introSeen: false, graphUnlockedSeen: false, shopCoachSeen: false,
+              day5AlertGuideSeen: false, day9IntroSeen: false,
+              day1GuideSeen: false, day2GuideSeen: false,
+              solutions: {}
+            };
+            state.consoleBlocks = {};
+            state.graphNodes = {};
+            state.discoveredObs = {};
+            state.crashMarks = {};
+            state.discoveredTargets = {};
+            refreshTitleAndWallet();
+            dom.noticeModal.classList.add('hidden');
+            showToast('Progreso reiniciado.');
+          });
+        });
+
+        // Cómic
+        dom.btnComicNext.addEventListener('click', () => {
+          SFX.click();
+          if (state.comicIdx < COMIC_PANELS.length - 1) {
+            state.comicIdx++;
+            renderComic();
+          } else {
+            enterStoryAt(0);
+          }
+        });
+        dom.btnComicSkip.addEventListener('click', () => { SFX.click(); enterStoryAt(0); });
+
+        // Barra superior
+        dom.btnHome.addEventListener('click', () => { SFX.click(); resetSim(); showScreen('title'); });
+        dom.btnDayPicker.addEventListener('click', () => { SFX.click(); openDaysModal(); });
+        dom.btnGameShop.addEventListener('click', () => {
+          SFX.click();
+          hideShopCoach();
+          openShopModal();
+        });
+        dom.btnAudio.addEventListener('click', () => {
+          SFX.enabled = !SFX.enabled;
+          dom.btnAudio.textContent = SFX.enabled ? '🔊' : '🔇';
+          dom.btnAudio.classList.toggle('muted', !SFX.enabled);
+          if (SFX.enabled) SFX.click();
+        });
+
+        // Velocidad de simulación 1x / 1.5x / 2x
+        dom.speedBtns.forEach((btn) => {
+          btn.addEventListener('click', () => {
+            SFX.click();
+            state.simSpeed = Number(btn.dataset.spd);
+            dom.speedBtns.forEach((b) => b.classList.toggle('active', b === btn));
+          });
+        });
+
+        // Interruptor Consola | Gráfica
+        dom.btnTabConsole.addEventListener('click', () => setPilotMode('console'));
+        dom.btnTabGraph.addEventListener('click', () => setPilotMode('graph'));
+
+        // Botones de Consola
+        dom.btnAddMove.addEventListener('click', () => addBlock('move'));
+        dom.btnAddWait.addEventListener('click', () => addBlock('wait'));
+        dom.btnClearUnlocked.addEventListener('click', () => {
+          if (state.sim.status === 'flying') return;
+          SFX.click();
+          const d = getDay();
+          state.consoleBlocks[d.day] = (state.consoleBlocks[d.day] || []).filter((b) => b.locked);
+          resetSim();
+          renderConsoleBlocks();
+        });
+
+        // Despegar y Detener
+        dom.btnLaunch.addEventListener('click', startFlight);
+        dom.btnStop.addEventListener('click', () => { SFX.click(); recordCorrectGraphDeliveries(); resetSim(); });
+
+        // Editor Gráfica
+        dom.graphCanvas.addEventListener('pointermove', (e) => {
+          if (state.pilotMode !== 'graph') return;
+          state.graphHover = pointerToGraphSnap(e.clientX, e.clientY);
+        });
+        dom.graphCanvas.addEventListener('pointerleave', () => { state.graphHover = null; });
+        dom.graphCanvas.addEventListener('pointerdown', (e) => {
+          if (state.pilotMode !== 'graph') return;
+          handleGraphTap(pointerToGraphSnap(e.clientX, e.clientY));
+        });
+        dom.btnGraphUndo.addEventListener('click', () => {
+          const nodes = state.graphNodes[getDay().day];
+          if (nodes && nodes.length > 1) {
+            nodes.pop();
+            SFX.click();
+            if (state.sim.status === 'done') resetSim();
+            updateGraphStatus();
+          }
+        });
+        dom.btnGraphClear.addEventListener('click', () => {
+          SFX.click();
+          state.graphNodes[getDay().day] = [{ t: 0, x: 0 }];
+          resetSim();
+          updateGraphStatus();
+        });
+
+        // Calculadora flotante + drag
+        dom.btnToggleCalc.addEventListener('click', () => {
+          SFX.click();
+          const hidden = dom.calcFloat.classList.toggle('hidden');
+          dom.btnToggleCalc.classList.toggle('active', !hidden);
+        });
+        dom.btnCalcClose.addEventListener('click', () => {
+          SFX.click();
+          dom.calcFloat.classList.add('hidden');
+          dom.btnToggleCalc.classList.remove('active');
+        });
+        dom.calcFloat.querySelectorAll('.ckey').forEach((btn) => {
+          btn.addEventListener('click', () => pressCalcKey(btn.dataset.c));
+        });
+
+        let calcDrag = null;
+        dom.calcDragHead.addEventListener('pointerdown', (e) => {
+          if (e.target === dom.btnCalcClose) return;
+          const r = dom.calcFloat.getBoundingClientRect();
+          calcDrag = { dx: e.clientX - r.left, dy: e.clientY - r.top };
+          dom.calcDragHead.setPointerCapture(e.pointerId);
+        });
+        dom.calcDragHead.addEventListener('pointermove', (e) => {
+          if (!calcDrag) return;
+          const left = clamp(e.clientX - calcDrag.dx, 8, window.innerWidth - dom.calcFloat.offsetWidth - 8);
+          const top = clamp(e.clientY - calcDrag.dy, 8, window.innerHeight - dom.calcFloat.offsetHeight - 8);
+          dom.calcFloat.style.left = `${left}px`;
+          dom.calcFloat.style.top = `${top}px`;
+          dom.calcFloat.style.right = 'auto';
+          dom.calcFloat.style.bottom = 'auto';
+        });
+        dom.calcDragHead.addEventListener('pointerup', () => { calcDrag = null; });
+
+        // Barrita guía botón OK
+        dom.btnGuideOk.addEventListener('click', () => {
+          SFX.click();
+          if (state.guide.kind === 'day1' && state.guide.step === 1) {
+            startGuide('day1', 2);
+          } else if (state.guide.kind === 'graphTut' && state.guide.step === 3) {
+            state.graphNodes[getDay().day] = [{ t: 0, x: 0 }];
+            dom.btnGuideOk.textContent = 'OK →';
+            updateGraphStatus();
+            hideGuide();
+          } else {
+            hideGuide();
+          }
+        });
+
+        // Overlay de aviso del Taller
+        dom.btnCoachLater.addEventListener('click', () => {
+          SFX.click();
+          hideShopCoach();
+          if (state.pendingGraphUnlock) {
+            state.pendingGraphUnlock = false;
+            showGraphUnlockNotice();
+          } else {
+            triggerDayEntryGuides(getDay());
+          }
+        });
+        dom.btnCoachOpen.addEventListener('click', () => {
+          SFX.click();
+          hideShopCoach();
+          openShopModal();
+        });
+
+        // Modales Resultado, Días, Taller
+        dom.btnCloseResult.addEventListener('click', () => dom.resultModal.classList.add('hidden'));
+        dom.btnRetry.addEventListener('click', () => {
+          SFX.click();
+          const d = getDay();
+          const collidedDay5 = d.day === 5 && state.sim.collided;
+          recordCorrectGraphDeliveries();
+          resetSim();
+          // Tras el primer incidente con Firulais en Día 5, señalar la alerta en Ruta del día
+          if (collidedDay5 && !state.save.day5AlertGuideSeen && state.discoveredObs[5].has('dog5')) {
+            state.save.day5AlertGuideSeen = true;
+            persistSave();
+            startGuide('day5Alert', 1);
+          }
+        });
+        dom.btnNextDay.addEventListener('click', () => {
+          SFX.click();
+          dom.resultModal.classList.add('hidden');
+          if (state.dayIdx < DAYS.length - 1) loadDay(state.dayIdx + 1);
+          else showScreen('title');
+        });
+
+        dom.btnCloseDays.addEventListener('click', () => dom.daysModal.classList.add('hidden'));
+        dom.daysModal.addEventListener('click', (e) => { if (e.target === dom.daysModal) dom.daysModal.classList.add('hidden'); });
+
+        dom.btnCloseShop.addEventListener('click', () => {
+          dom.shopModal.classList.add('hidden');
+          if (state.pendingGraphUnlock && state.screen === 'game') {
+            state.pendingGraphUnlock = false;
+            showGraphUnlockNotice();
+          }
+        });
+        dom.shopModal.addEventListener('click', (e) => {
+          if (e.target === dom.shopModal) {
+            dom.shopModal.classList.add('hidden');
+            if (state.pendingGraphUnlock && state.screen === 'game') {
+              state.pendingGraphUnlock = false;
+              showGraphUnlockNotice();
+            }
+          }
+        });
+
+        window.addEventListener('resize', handleResize);
+      }
+
+      /* ======================================================================
+         18. INICIALIZACIÓN
+         ====================================================================== */
+      window.onload = function () {
+        loadSave();
+        bindEvents();
+        renderCalc();
+        showScreen('title');
+        state.lastTime = performance.now();
+        requestAnimationFrame(loop);
+      };
+    })();
+  </script>
+</body>
+</html>
